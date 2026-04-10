@@ -1,0 +1,216 @@
+.varaus-pohja {
+    display: flex;
+    gap: 2em;
+    align-items: stretch;
+    padding: 5em;
+    margin: 0 auto;
+    min-height: 80vh;
+    max-width: 1100px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/*KARTAN TYYLIT ALKAA*/
+
+.kartta-pohja {
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    padding: 1em;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 1em;
+    box-shadow: 5px 10px 8px #888888;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.kartta-pohja svg {
+    width: auto !important;
+    height: 100% !important;   /* ← SVG fills the container height */
+    max-height: 70vh;          /* ← limits how tall it gets */
+    display: block !important;
+}
+
+.kartta-otsikko {
+    text-align: center;
+    margin-bottom: 1em;
+    font-weight: bold;
+    color: #666666;
+}
+
+/*KARTAN TYYLIT PÄÄTTYY*/
+
+/* Override Twenty Twenty-Four's constrained layout */
+.wp-block-post-content .varaus-pohja,
+.is-layout-constrained .varaus-pohja,
+.wp-block-post-content-is-layout-constrained .varaus-pohja {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+
+/*LOMAKKEEN TYYLIT ALKAA*/
+
+.lomake-pohja {
+    flex: 0.75;
+    margin-right: 5em;
+    padding: 1.5em;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 1em;
+    box-shadow: 5px 10px 8px #888888;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+
+/* flex-rivi etu- ja sukunimelle */
+.nimi-rivi {
+    display: flex;
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+/* jokainen kenttä vie puolet rivistä */
+.nimi-kentta {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* label ylös, input alas */
+}
+
+/* lisätyyli inputille */
+.nimi-kentta input {
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.email-rivi {
+    display: flex;
+    gap: 1em;
+    margin-bottom: 1em;
+}
+
+.email-kentta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.email-kentta input {
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.alin-rivi {
+    display: flex;
+    gap: 1em;
+    align-items: center;
+}
+
+/* jokainen kenttä vie puolet rivistä */
+.poyta-kentta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.poyta-kentta input {
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* maksu nappi */
+.maksu-kentta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.maksu-kentta label {
+    visibility: hidden;
+}
+
+.maksu-kentta button {
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    border: none;
+    background-color: #000000;
+    color: white;
+    cursor: pointer;
+}
+
+.keskitetty-teksti {
+    text-align: center;
+}
+
+/*LOMAKKEEN TYYLIT PÄÄTTYY*/
+
+
+/* pöytien tila */
+.vapaa {
+    fill: green;
+}
+
+.varattu {
+    fill: red;
+}
+
+/* väliaikainen */
+#p4 {
+    fill: green !important;
+}
+
+
+/*MOBIILINÄKYMÄ*/
+@media (max-width: 1490px) {
+
+    .nimi-kentta {
+        margin-bottom: 1em;
+    }
+
+    .nimi-rivi, .alin-rivi {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 1300px) {
+    .varaus-pohja {
+        flex-direction: column;
+        height: auto;
+        padding: 1.5em;
+    }
+
+    .lomake-pohja {
+        margin-right: 0;
+    }
+
+    .nimi-rivi, .alin-rivi {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 768px) {
+    .varaus-pohja {
+        flex-direction: column;
+        height: auto;
+        padding: 1.5em;
+    }
+
+    .lomake-pohja {
+        margin-right: 0;
+    }
+
+    .nimi-rivi, .alin-rivi {
+        flex-direction: column;
+    }
+}
