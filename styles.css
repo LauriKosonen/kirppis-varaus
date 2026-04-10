@@ -1,6 +1,6 @@
 .varaus-pohja {
     display: flex;
-    gap: 2em;
+    gap: 10em;
     align-items: stretch;
     padding: 5em;
     margin: 0 auto;
@@ -13,9 +13,10 @@
 /*KARTAN TYYLIT ALKAA*/
 
 .kartta-pohja {
-    flex: 1;
+    flex: 0.8;
     flex-direction: column;
     width: 100%;
+    min-width: 0;
     padding: 1em;
     background-color: white;
     border: 1px solid #ddd;
@@ -28,10 +29,10 @@
 }
 
 .kartta-pohja svg {
-    width: auto !important;
-    height: 100% !important;   /* ← SVG fills the container height */
-    max-height: 70vh;          /* ← limits how tall it gets */
-    display: block !important;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
 }
 
 .kartta-otsikko {
@@ -55,9 +56,9 @@
 /*LOMAKKEEN TYYLIT ALKAA*/
 
 .lomake-pohja {
-    flex: 0.75;
-    margin-right: 5em;
+    flex: 1.2;
     padding: 1.5em;
+    min-width: 0;
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 1em;
@@ -168,7 +169,27 @@
 
 
 /*MOBIILINÄKYMÄ*/
-@media (max-width: 1490px) {
+@media (max-width: 1600px) {
+
+    .varaus-pohja {
+        gap: 5em;
+        padding: 5em;
+    }
+}
+@media (max-width: 1200px) {
+
+    .varaus-pohja {
+        gap: 5em;
+        padding: 5em;
+    }
+
+    .lomake-pohja {
+        flex: 1;
+    }
+
+    .kartta-pohja {
+        flex: 1;
+    }
 
     .nimi-kentta {
         margin-bottom: 1em;
@@ -182,26 +203,9 @@
     }
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1100px) {
     .varaus-pohja {
-        flex-direction: column;
-        height: auto;
-        padding: 1.5em;
-    }
-
-    .lomake-pohja {
-        margin-right: 0;
-    }
-
-    .nimi-rivi, .alin-rivi {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-@media (max-width: 768px) {
-    .varaus-pohja {
-        flex-direction: column;
+        flex-direction: column-reverse;
         height: auto;
         padding: 1.5em;
     }
