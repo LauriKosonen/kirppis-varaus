@@ -133,39 +133,116 @@
     flex-direction: column;
 }
 
-.maksu-kentta label {
+/* .maksu-kentta label {
     visibility: hidden;
-}
+} */
 
 .maksu-kentta button {
-    padding: 0.5em 1em;
-    border-radius: 4px;
+    height: 3.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 0.5em;
     border: none;
-    background-color: #000000;
+    background-color: #000;
     color: white;
     cursor: pointer;
+    padding: 0;
 }
 
 .keskitetty-teksti {
     text-align: center;
 }
 
+.dropdown {
+    min-width: 15em;
+    position: relative;
+}
+
+.dropdown * {
+    box-sizing: border-box;
+}
+
+.select{
+    display: flex;
+    height: 3.2em;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px #000000 solid;
+    border-radius: 0.5em;
+    padding: 0 1em;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.select-clicked {
+    border: 2px #000000 solid;
+    box-shadow: 0 0 0.8em #000000;
+}
+
+.select:hover {
+    background: whitesmoke;
+}
+
+.selected {
+    color: rgb(144, 144, 144)
+}
+
+.nuoli {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #232323;
+    transition: 0.3s;
+}
+
+.nuoli-rotate {
+    transform: rotate(180deg);
+}
+
+.menu {
+    list-style: none;
+    padding: 0.2em 0.5em;
+    background-color: white;
+    border: 1px #000000 solid;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.2);
+    border-radius: 0.5em;
+    color: #000000;
+    position:absolute;
+    top: 3em;
+    left: 50%;
+    width: 100%;
+    transform: translateX(-50%);
+    opacity: 0;
+    display: none;
+    transition: 0.2s;
+    z-index: 1;
+}
+
+.menu li {
+    padding: 0.7em 0.5em;
+    margin: 0.3em 0;
+    border-radius: 0.5em;
+    cursor: pointer;
+
+}
+
+.menu li:hover {
+    background: whitesmoke;
+}
+
+.active {
+    background: white;
+}
+
+.menu-open {
+    display: block;
+    opacity: 1;
+}
+
 /*LOMAKKEEN TYYLIT PÄÄTTYY*/
-
-
-/* pöytien tila */
-.vapaa {
-    fill: green;
-}
-
-.varattu {
-    fill: red;
-}
-
-/* väliaikainen */
-#p4 {
-    fill: green !important;
-}
 
 
 /*MOBIILINÄKYMÄ*/

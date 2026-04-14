@@ -16,6 +16,14 @@ add_action('wp_enqueue_scripts', function() {
         'kirppis-styles',
         plugin_dir_url(__FILE__) . 'styles.css'
     );
+
+    wp_enqueue_script(
+        'kirppis-js',
+        plugin_dir_url(__FILE__) . 'kirppis-varaus.js',
+        [],
+        false,
+        true // tärkeä: footeriin
+    );
 });
 
 add_action('admin_menu', function() {
@@ -145,7 +153,15 @@ add_shortcode('kirppis_varauslomake', function() {
             <div class="alin-rivi">
                 <div class="poyta-kentta">
                     <label>Paikkanumero:</label>
-                    <input type="text" id="selected-table" name="table" readonly>
+                    <!-- <input type="text" id="selected-table" name="table" readonly> -->
+                     <div class="dropdown">
+                        <div class="select">
+                            <span class="selected">Valitse paikkanumero</span>
+                            <div class="nuoli"></div>
+                        </div>
+                        <ul class="menu"></ul>
+
+                     </div>
                 </div>
                 <div class="maksu-kentta">
                     <label>tyhjä css</label>
