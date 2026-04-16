@@ -3,8 +3,7 @@
     gap: 10em;
     align-items: stretch;
     padding: 5em;
-    margin: 0 auto;
-    min-height: 80vh;
+    margin-top: 0;
     max-width: 1100px !important;
     width: 100% !important;
     box-sizing: border-box;
@@ -15,6 +14,7 @@
 .kartta-pohja {
     flex: 0.8;
     flex-direction: column;
+    max-height: clamp(500px, 80vh, 750px);
     width: 100%;
     min-width: 0;
     padding: 1em;
@@ -56,15 +56,24 @@
 /*LOMAKKEEN TYYLIT ALKAA*/
 
 .lomake-pohja {
+    display: flex;
+    flex-direction: column;
     flex: 1.2;
     padding: 1.5em;
     min-width: 0;
+    max-height: clamp(500px, 80vh, 750px);
     background-color: white;
     border: 1px solid #ddd;
     border-radius: 1em;
     box-shadow: 5px 10px 8px #888888;
     box-sizing: border-box;
     overflow-y: auto;
+    overflow: visible;
+}
+
+#varaus-form {
+    margin-top: auto;
+    margin-bottom: 1em;
 }
 
 
@@ -111,6 +120,7 @@
     display: flex;
     gap: 1em;
     align-items: center;
+    width: 100%;
 }
 
 /* jokainen kenttä vie puolet rivistä */
@@ -131,18 +141,24 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
 }
 
-/* .maksu-kentta label {
-    visibility: hidden;
-} */
+.select, .maksu-kentta button {
+    height: 2.58em !important;
+}
 
-.maksu-kentta button {
-    height: 3.2em;
+.maksu-kentta label {
+    visibility: hidden;
+}
+
+#varaus-form .maksu-kentta button {
+    height: 3.2em !important;
+    min-height: 3.2em !important;
+    width: 100% !important;
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 0.5em;
     border: none;
     background-color: #000;
@@ -153,6 +169,7 @@
 
 .keskitetty-teksti {
     text-align: center;
+    margin: auto;
 }
 
 .dropdown {
@@ -166,19 +183,18 @@
 
 .select{
     display: flex;
-    height: 3.2em;
     justify-content: space-between;
     align-items: center;
     border: 1px #000000 solid;
     border-radius: 0.5em;
     padding: 0 1em;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-colour 0.3s;
 }
 
 .select-clicked {
     border: 2px #000000 solid;
-    box-shadow: 0 0 0.8em #000000;
+    box-shadow: 0 0 0.2em #000000;
 }
 
 .select:hover {
@@ -206,7 +222,7 @@
     list-style: none;
     padding: 0.2em 0.5em;
     background-color: white;
-    border: 1px #000000 solid;
+    outline: 1px #000000 solid;
     box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.2);
     border-radius: 0.5em;
     color: #000000;
@@ -219,6 +235,8 @@
     display: none;
     transition: 0.2s;
     z-index: 1;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .menu li {
@@ -253,7 +271,7 @@
         padding: 5em;
     }
 }
-@media (max-width: 1200px) {
+/* @media (max-width: 1200px) {
 
     .varaus-pohja {
         gap: 5em;
@@ -278,20 +296,68 @@
         gap: 0;
         margin-bottom: 0;
     }
-}
+} */
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
     .varaus-pohja {
-        flex-direction: column-reverse;
+        flex-direction: column;
         height: auto;
         padding: 1.5em;
     }
 
     .lomake-pohja {
         margin-right: 0;
+        max-height: none;
+    }
+
+    .kartta-pohja {
+        max-height: none;
+    }
+
+    .keskitetty-teksti {
+        margin-bottom: 2em;
+    }
+}
+
+@media (max-width: 650px) {
+    .varaus-pohja {
+        flex-direction: column;
+        height: auto;
+        padding: 0em;
+    }
+
+    .lomake-pohja {
+        margin-right: 0;
+        max-height: none;
+    }
+
+    .kartta-pohja {
+        max-height: none;
     }
 
     .nimi-rivi, .alin-rivi {
         flex-direction: column;
+    }
+
+    .poyta-kentta {
+        display: flex;
+        width: 100%;
+    }
+
+    .maksu-kentta {
+        display: flex;
+        width: 100%;
+    }
+
+    .dropdown {
+        min-width: unset;
+        width: 100%;
+    }
+
+    #varaus-form .maksu-kentta button {
+        width: 100% !important;
+    }
+    .maksu-kentta label {
+        visibility: hidden;
     }
 }

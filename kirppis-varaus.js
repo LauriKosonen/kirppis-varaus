@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Väritetään kartta (valinnainen mutta suositeltava)
     kaikkiPoydat.forEach(poyta => {
         if (varatutPoydat.includes(poyta.id)) {
-            poyta.style.fill = 'red';
+            poyta.style.fill = 'orange';
         } else {
             poyta.style.fill = 'green';
         }

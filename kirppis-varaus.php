@@ -127,7 +127,7 @@ add_shortcode('kirppis_varauslomake', function() {
     ?>
 
     <div class="lomake-pohja">
-        <h3 class="keskitetty-teksti">TORPPIS KIRPPIS PAIKKAVARAUS <br> 11.11.1111</h3>
+        <h3 class="keskitetty-teksti">PAIKAN VARAUSLOMAKE<br> 11.11.1111</h3>
         <p class="keskitetty-teksti">Täytä yhteystietosi ja valitse haluamasi paikkanumero alasvetolaatikosta. Vapaat ja varatut paikat näkyvät pöytäkartassa. Alasvetolaatikko näyttää vain vapaat paikat. Voit maksaa pöytävarauksen joko Mobilepay:lla tai korttimaksulla</p>
 
         <form id="varaus-form">
@@ -153,7 +153,6 @@ add_shortcode('kirppis_varauslomake', function() {
             <div class="alin-rivi">
                 <div class="poyta-kentta">
                     <label>Paikkanumero:</label>
-                    <!-- <input type="text" id="selected-table" name="table" readonly> -->
                      <div class="dropdown">
                         <div class="select">
                             <span class="selected">Valitse paikkanumero</span>
@@ -164,7 +163,7 @@ add_shortcode('kirppis_varauslomake', function() {
                      </div>
                 </div>
                 <div class="maksu-kentta">
-                    <label>tyhjä css</label>
+                    <label>näkymätön css</label>
                     <button type="submit">Maksa varaus</button>
                 </div>
             </div>
