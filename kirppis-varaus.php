@@ -10,6 +10,80 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+// tietokanta taulun rekisteröinti ja luonti
+register_activation_hook(__FILE__, 'varaus_plugin_create_table');
+
+function varaus_plugin_create_table() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'varaukset';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+
+    $sql = "CREATE TABLE $table_name (
+        id INT NOT NULL AUTO_INCREMENT,
+        paikka_id VARCHAR(50) NOT NULL,
+        etunimi VARCHAR(100) NOT NULL,
+        sukunimi VARCHAR(100) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+
+        status VARCHAR(20) NOT NULL,
+        payment_reference VARCHAR(255),
+
+        reserved_until DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        PRIMARY KEY (id),
+        KEY paikka_id (paikka_id)
+    ) $charset_collate;";
+
+    dbDelta($sql);
+}
+
+function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'varaukset';
+
+    // Tarkista onko paikka jo varattu
+    $existing = $wpdb->get_var($wpdb->prepare("
+        SELECT COUNT(*) FROM $table
+        WHERE paikka_id = %s
+        AND (
+            status = 'paid'
+            OR (status = 'pending' AND reserved_until > NOW())
+        )
+    ", $paikka_id));
+
+    if ($existing > 0) {
+        return ['success' => false, 'message' => 'Paikka on jo varattu'];
+    }
+
+    // Luo varaus (10 min voimassa)
+    $reserved_until = current_time('mysql', 1);
+    $reserved_until = date('Y-m-d H:i:s', strtotime($reserved_until . ' +10 minutes'));
+
+    $wpdb->insert($table, [
+        'paikka_id' => $paikka_id,
+        'etunimi' => $etunimi,
+        'sukunimi' => $sukunimi,
+        'email' => $email,
+        'status' => 'pending',
+        'reserved_until' => $reserved_until
+    ]);
+
+    return ['success' => true, 'message' => 'Varaus luotu'];
+}
+//väliaikainen testi. poista myöhemmin
+// add_action('init', function() {
+//     $result = luo_varaus('Paikka-1', 'Matti', 'Meikäläinen', 'matti@testi.fi');
+
+//     echo '<pre>';
+//     print_r($result);
+//     echo '</pre>';
+//     exit;
+// });
+
 // tyylit
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(

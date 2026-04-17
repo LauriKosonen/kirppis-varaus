@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // koko koodi tänne
         // TESTIDATA (myöhemmin tämä tulee backendista)
     const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
-    // Hae kaikki SVG:n pöydät
+    // Hae kaikki svg pöydät
     const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
-    // Erotellaan vapaat pöydät
+    // haetaan vapaat pöydät
     const vapaatPoydat = [];
 
     kaikkiPoydat.forEach(poyta => {
