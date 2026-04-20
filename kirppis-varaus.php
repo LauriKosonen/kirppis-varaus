@@ -32,7 +32,7 @@ function varaus_plugin_create_table() {
         payment_reference VARCHAR(255),
 
         reserved_until DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL,
 
         PRIMARY KEY (id),
         KEY paikka_id (paikka_id)
@@ -46,22 +46,24 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     $table = $wpdb->prefix . 'varaukset';
 
     // Tarkista onko paikka jo varattu
+    $current_time = current_time('mysql');
+
     $existing = $wpdb->get_var($wpdb->prepare("
         SELECT COUNT(*) FROM $table
         WHERE paikka_id = %s
         AND (
             status = 'paid'
-            OR (status = 'pending' AND reserved_until > NOW())
+            OR (status = 'pending' AND reserved_until > %s)
         )
-    ", $paikka_id));
+    ", $paikka_id, $current_time));
 
     if ($existing > 0) {
         return ['success' => false, 'message' => 'Paikka on jo varattu'];
     }
 
     // Luo varaus (10 min voimassa)
-    $reserved_until = current_time('mysql', 1);
-    $reserved_until = date('Y-m-d H:i:s', strtotime($reserved_until . ' +10 minutes'));
+    $now = current_time('mysql'); // WordPress aika
+    $reserved_until = date('Y-m-d H:i:s', strtotime($now . ' +10 minutes'));
 
     $wpdb->insert($table, [
         'paikka_id' => $paikka_id,
@@ -69,7 +71,8 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         'sukunimi' => $sukunimi,
         'email' => $email,
         'status' => 'pending',
-        'reserved_until' => $reserved_until
+        'reserved_until' => $reserved_until,
+        'created_at' => $now
     ]);
 
     return ['success' => true, 'message' => 'Varaus luotu'];
@@ -84,7 +87,22 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
 //     exit;
 // });
 
-// tyylit
+//AJAX
+add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
+add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');
+
+function luo_varaus_ajax() {
+    $paikka_id = $_POST['paikka_id'];
+    $etunimi = $_POST['etunimi'];
+    $sukunimi = $_POST['sukunimi'];
+    $email = $_POST['email'];
+
+    $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email);
+
+    wp_send_json($result);
+}
+
+
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(
         'kirppis-styles',
@@ -94,10 +112,14 @@ add_action('wp_enqueue_scripts', function() {
     wp_enqueue_script(
         'kirppis-js',
         plugin_dir_url(__FILE__) . 'kirppis-varaus.js',
-        [],
-        false,
-        true // tärkeä: footeriin
+        ['jquery'],
+        null,
+        true
     );
+
+    wp_localize_script('kirppis-js', 'ajax_object', [
+        'ajax_url' => admin_url('admin-ajax.php')
+    ]);
 });
 
 add_action('admin_menu', function() {
@@ -209,40 +231,45 @@ add_shortcode('kirppis_varauslomake', function() {
             <div class="nimi-rivi">
                 <div class="nimi-kentta">
                     <label>Etunimi:</label>
-                    <input type="text" name="name" required>
+                    <input type="text" id="etunimi" required>
                 </div>
                 <div class="nimi-kentta">
                     <label>Sukunimi:</label>
-                    <input type="text" name="name" required>
+                    <input type="text" id="sukunimi" required>
                 </div>
             </div>
 
             <div class="email-rivi">
                 <div class="email-kentta">
                     <label>Sähköposti:</label>
-                    <input type="email" name="email" required>
+                    <input type="email" id="email" required>
                 </div>
             </div>
 
             <div class="alin-rivi">
                 <div class="poyta-kentta">
                     <label>Paikkanumero:</label>
-                     <div class="dropdown">
+
+                    <!-- TÄRKEÄ: piilotettu input johon tallennetaan valinta -->
+                    <input type="hidden" id="paikka">
+
+                    <div class="dropdown">
                         <div class="select">
                             <span class="selected">Valitse paikkanumero</span>
                             <div class="nuoli"></div>
                         </div>
                         <ul class="menu"></ul>
+                    </div>
 
-                     </div>
                 </div>
+
                 <div class="maksu-kentta">
                     <label>näkymätön css</label>
                     <button type="submit">Maksa varaus</button>
                 </div>
             </div>
 
-        </form>
+    </form>
     </div>
 
     <?php

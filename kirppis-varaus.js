@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // TESTIDATA (myöhemmin tämä tulee backendista)
     const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
+    console.log("JS ladattu");
+
+    console.log("AJAX URL:", ajax_object.ajax_url);
+
     // Hae kaikki svg pöydät
     const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
@@ -64,6 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
             option.addEventListener('click', () => {
                 selected.innerText = option.innerText;
 
+                document.getElementById('paikka').value = option.innerText;
+
+                console.log("Valittu paikka:", option.innerText);
+
                 select.classList.remove('select-clicked');
                 nuoli.classList.remove('nuoli-rotate');
                 menu.classList.remove('menu-open');
@@ -75,6 +83,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.classList.add('active');
             });
         });
+    });
+
+    jQuery('#varaus-form').on('submit', function(e) {
+        e.preventDefault();
+
+        jQuery.post(ajax_object.ajax_url, {
+            action: 'luo_varaus',
+            paikka_id: jQuery('#paikka').val(),
+            etunimi: jQuery('#etunimi').val(),
+            sukunimi: jQuery('#sukunimi').val(),
+            email: jQuery('#email').val()
+        }, function(response) {
+            if (response.success) {
+                alert('Varaus onnistui!');
+            } else {
+                alert(response.message);
+            }
+        });
+    });
+    console.log("Lähetetään:", {
+        paikka: jQuery('#paikka').val(),
+        etunimi: jQuery('#etunimi').val(),
+        sukunimi: jQuery('#sukunimi').val(),
+        email: jQuery('#email').val()
     });
 });
 
