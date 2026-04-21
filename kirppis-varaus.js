@@ -88,6 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
     jQuery('#varaus-form').on('submit', function(e) {
         e.preventDefault();
 
+        document.getElementById('maksu-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('maksu-modal').classList.add('hidden');
+    });
+
+    document.getElementById('mobilepay-button').addEventListener('click', () => {
+        console.log("MobilePay valittu");
+    });
+
+    document.getElementById('kortti-button').addEventListener('click', () => {
+        console.log("Kortti valittu");
+    });
+
+    jQuery('#maksu-form').on('submit', function(e) {
+        e.preventDefault();
+
+        console.log("Lähetetään:", {
+            paikka: jQuery('#paikka').val(),
+            etunimi: jQuery('#etunimi').val(),
+            sukunimi: jQuery('#sukunimi').val(),
+            email: jQuery('#email').val()
+        });
+
         jQuery.post(ajax_object.ajax_url, {
             action: 'luo_varaus',
             paikka_id: jQuery('#paikka').val(),
@@ -95,18 +120,14 @@ document.addEventListener('DOMContentLoaded', () => {
             sukunimi: jQuery('#sukunimi').val(),
             email: jQuery('#email').val()
         }, function(response) {
+            console.log("Vastaus:", response);
+
             if (response.success) {
                 alert('Varaus onnistui!');
             } else {
                 alert(response.message);
             }
         });
-    });
-    console.log("Lähetetään:", {
-        paikka: jQuery('#paikka').val(),
-        etunimi: jQuery('#etunimi').val(),
-        sukunimi: jQuery('#sukunimi').val(),
-        email: jQuery('#email').val()
     });
 });
 

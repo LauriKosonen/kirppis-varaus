@@ -265,11 +265,30 @@ add_shortcode('kirppis_varauslomake', function() {
 
                 <div class="maksu-kentta">
                     <label>näkymätön css</label>
-                    <button type="submit">Maksa varaus</button>
+                    <button type="submit">Siirry maksamaan</button>
                 </div>
             </div>
 
     </form>
+    </div>
+
+    <div id="maksu-modal" class="modal hidden">
+        <div class="modal-content">
+
+            <form id="maksu-form">
+
+                <h3>Valitse maksutapa</h3>
+
+                <button type="button" id="mobilepay-button">MobilePay</button>
+                <button type="button" id="kortti-button">Korttimaksu</button>
+
+                <button type="submit" id="maksu-button">Maksa varaus</button>
+
+            </form>
+
+            <button id="close-modal">Sulje</button>
+
+        </div>
     </div>
 
     <?php
