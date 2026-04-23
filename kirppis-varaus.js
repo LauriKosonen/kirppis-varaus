@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("AJAX URL:", ajax_object.ajax_url);
 
-    // Hae kaikki svg pöydät
+    //haetaan kaikki svg pöydät
     const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
-    // haetaan vapaat pöydät
+    //haetaan vapaat pöydät
     const vapaatPoydat = [];
 
     kaikkiPoydat.forEach(poyta => {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return numA - numB;
     });
 
-    // Väritetään kartta (valinnainen mutta suositeltava)
+    // Väritetään kartta
     kaikkiPoydat.forEach(poyta => {
         if (varatutPoydat.includes(poyta.id)) {
             poyta.style.fill = 'orange';
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             menu.appendChild(li);
         });
 
-        // Hae uudet optionit (koska luotiin dynaamisesti)
+        // Haetaan uudet optionit
         const options = dropdown.querySelectorAll('.menu li');
 
         // Dropdown auki/kiinni
@@ -96,29 +96,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('mobilepay-button').addEventListener('click', () => {
+        document.getElementById('maksutapa').value = 'mobilepay';
         console.log("MobilePay valittu");
     });
 
     document.getElementById('kortti-button').addEventListener('click', () => {
+        document.getElementById('maksutapa').value = 'kortti';
         console.log("Kortti valittu");
     });
 
     jQuery('#maksu-form').on('submit', function(e) {
         e.preventDefault();
 
+        const maksutapa = document.getElementById('maksutapa').value;
+
+        if (!maksutapa) {
+            alert("Valitse maksutapa");
+            return;
+        }
+
         console.log("Lähetetään:", {
             paikka: jQuery('#paikka').val(),
             etunimi: jQuery('#etunimi').val(),
             sukunimi: jQuery('#sukunimi').val(),
-            email: jQuery('#email').val()
+            email: jQuery('#email').val(),
         });
+
+        console.log("MAKSUTAPA DEBUG:", maksutapa);
 
         jQuery.post(ajax_object.ajax_url, {
             action: 'luo_varaus',
             paikka_id: jQuery('#paikka').val(),
             etunimi: jQuery('#etunimi').val(),
             sukunimi: jQuery('#sukunimi').val(),
-            email: jQuery('#email').val()
+            email: jQuery('#email').val(),
+            maksutapa: jQuery('#maksutapa').val()
         }, function(response) {
             console.log("Vastaus:", response);
 

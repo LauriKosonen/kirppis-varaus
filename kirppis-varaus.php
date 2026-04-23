@@ -27,6 +27,7 @@ function varaus_plugin_create_table() {
         etunimi VARCHAR(100) NOT NULL,
         sukunimi VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
+        maksutapa VARCHAR(50),
 
         status VARCHAR(20) NOT NULL,
         payment_reference VARCHAR(255),
@@ -41,7 +42,7 @@ function varaus_plugin_create_table() {
     dbDelta($sql);
 }
 
-function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
+function luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
 
@@ -53,7 +54,7 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         WHERE paikka_id = %s
         AND (
             status = 'paid'
-            OR (status = 'pending' AND reserved_until > %s)
+            OR (status = 'pending_payment' AND reserved_until > %s)
         )
     ", $paikka_id, $current_time));
 
@@ -70,10 +71,19 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         'etunimi' => $etunimi,
         'sukunimi' => $sukunimi,
         'email' => $email,
-        'status' => 'pending',
+        'maksutapa' => $maksutapa,
+        'status' => 'pending_payment',
         'reserved_until' => $reserved_until,
         'created_at' => $now
+        
     ]);
+
+    if ($wpdb->last_error) {
+        return [
+            'success' => false,
+            'message' => 'DB error: ' . $wpdb->last_error
+        ];
+    }
 
     return ['success' => true, 'message' => 'Varaus luotu'];
 }
@@ -96,8 +106,9 @@ function luo_varaus_ajax() {
     $etunimi = $_POST['etunimi'];
     $sukunimi = $_POST['sukunimi'];
     $email = $_POST['email'];
+    $maksutapa = $_POST['maksutapa'];
 
-    $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email);
+    $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa);
 
     wp_send_json($result);
 }
@@ -278,6 +289,8 @@ add_shortcode('kirppis_varauslomake', function() {
             <form id="maksu-form">
 
                 <h3>Valitse maksutapa</h3>
+
+                <input type="hidden" id="maksutapa">
 
                 <button type="button" id="mobilepay-button">MobilePay</button>
                 <button type="button" id="kortti-button">Korttimaksu</button>
