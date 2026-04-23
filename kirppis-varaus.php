@@ -46,7 +46,7 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
 
-    // Tarkista onko paikka jo varattu
+    //tarkistetaan onko paikka jo varattu
     $current_time = current_time('mysql');
 
     $existing = $wpdb->get_var($wpdb->prepare("
@@ -282,7 +282,7 @@ add_shortcode('kirppis_varauslomake', function() {
 
     </form>
     </div>
-
+    <!--maksu modal ikkuna -->
     <div id="maksu-modal" class="modal hidden">
         <div class="modal-content">
 

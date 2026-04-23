@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    //formin kenttien tallennus tietokantaan
     jQuery('#varaus-form').on('submit', function(e) {
         e.preventDefault();
 
