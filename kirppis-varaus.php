@@ -28,14 +28,15 @@ function varaus_plugin_create_table() {
         sukunimi VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
 
-        status VARCHAR(20) NOT NULL,
-        payment_reference VARCHAR(255),
+        status VARCHAR(20) NOT NULL DEFAULT 'pending_payment',
+        payment_reference VARCHAR(255) NOT NULL,
 
         reserved_until DATETIME,
         created_at DATETIME NOT NULL,
 
         PRIMARY KEY (id),
-        KEY paikka_id (paikka_id)
+        KEY paikka_id (paikka_id),
+        KEY payment_reference (payment_reference)
     ) $charset_collate;";
 
     dbDelta($sql);
@@ -45,9 +46,9 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
 
-    //tarkistetaan onko paikka jo varattu
     $current_time = current_time('mysql');
 
+    // Tarkistetaan onko paikka varattu
     $existing = $wpdb->get_var($wpdb->prepare("
         SELECT COUNT(*) FROM $table
         WHERE paikka_id = %s
@@ -61,29 +62,39 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         return ['success' => false, 'message' => 'Paikka on jo varattu'];
     }
 
-    // Luo varaus (10 min voimassa)
-    $now = current_time('mysql'); // WordPress aika
+    // Aikaleimat
+    $now = current_time('mysql');
     $reserved_until = date('Y-m-d H:i:s', strtotime($now . ' +10 minutes'));
 
-    $wpdb->insert($table, [
+    // 🔑 GENEROI PAYMENT REFERENCE (tärkeä MobilePaylle)
+    $payment_reference = 'VARAUS-' . wp_generate_uuid4();
+
+    // Insert
+    $inserted = $wpdb->insert($table, [
         'paikka_id' => $paikka_id,
         'etunimi' => $etunimi,
         'sukunimi' => $sukunimi,
         'email' => $email,
+
         'status' => 'pending_payment',
+        'payment_reference' => $payment_reference,
+
         'reserved_until' => $reserved_until,
         'created_at' => $now
-        
     ]);
 
-    if ($wpdb->last_error) {
+    if (!$inserted || $wpdb->last_error) {
         return [
             'success' => false,
             'message' => 'DB error: ' . $wpdb->last_error
         ];
     }
 
-    return ['success' => true, 'message' => 'Varaus luotu'];
+    return [
+        'success' => true,
+        'message' => 'Varaus luotu',
+        'payment_reference' => $payment_reference
+    ];
 }
 //väliaikainen testi. poista myöhemmin
 // add_action('init', function() {
