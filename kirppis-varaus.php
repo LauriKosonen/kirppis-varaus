@@ -27,7 +27,6 @@ function varaus_plugin_create_table() {
         etunimi VARCHAR(100) NOT NULL,
         sukunimi VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
-        maksutapa VARCHAR(50),
 
         status VARCHAR(20) NOT NULL,
         payment_reference VARCHAR(255),
@@ -42,7 +41,7 @@ function varaus_plugin_create_table() {
     dbDelta($sql);
 }
 
-function luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa) {
+function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
 
@@ -71,7 +70,6 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa) {
         'etunimi' => $etunimi,
         'sukunimi' => $sukunimi,
         'email' => $email,
-        'maksutapa' => $maksutapa,
         'status' => 'pending_payment',
         'reserved_until' => $reserved_until,
         'created_at' => $now
@@ -106,9 +104,8 @@ function luo_varaus_ajax() {
     $etunimi = $_POST['etunimi'];
     $sukunimi = $_POST['sukunimi'];
     $email = $_POST['email'];
-    $maksutapa = $_POST['maksutapa'];
 
-    $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email, $maksutapa);
+    $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email);
 
     wp_send_json($result);
 }
@@ -261,7 +258,7 @@ add_shortcode('kirppis_varauslomake', function() {
                 <div class="poyta-kentta">
                     <label>Paikkanumero:</label>
 
-                    <!-- TÄRKEÄ: piilotettu input johon tallennetaan valinta -->
+                    <!--piilotettu input johon tallennetaan valinta -->
                     <input type="hidden" id="paikka">
 
                     <div class="dropdown">
@@ -288,18 +285,25 @@ add_shortcode('kirppis_varauslomake', function() {
 
             <form id="maksu-form">
 
-                <h3>Valitse maksutapa</h3>
+                <h3>Vahvista varaus</h3>
+                <p>Tarkista, että alla olevat tiedot ovat oikein. Painamalla "Vahvista varaus" sinut ohjataan MobilePayn maksupalveluun suorittamaan varausmaksu.</p>
 
-                <input type="hidden" id="maksutapa">
+                <div class="vahvistus-tiedot">
+                    <p><strong>Etunimi:</strong> <span id="vahvistus-etunimi"></span></p>
+                    <p><strong>Sukunimi:</strong> <span id="vahvistus-sukunimi"></span></p>
+                    <p><strong>Sähköposti:</strong> <span id="vahvistus-email"></span></p>
+                    <p><strong>Paikka:</strong> <span id="vahvistus-paikka"></span></p>
+                </div>
 
-                <button type="button" id="mobilepay-button">MobilePay</button>
-                <button type="button" id="kortti-button">Korttimaksu</button>
+                <div class="modal-napit">
+                    <button type="submit" id="maksu-button">Vahvista varaus</button>
+                    <button id="close-modal">Sulje</button>
+                </div>
 
-                <button type="submit" id="maksu-button">Maksa varaus</button>
+                <button type="submit" id="testi-button">Tallenna varaus (TESTI)</button>
 
             </form>
 
-            <button id="close-modal">Sulje</button>
 
         </div>
     </div>

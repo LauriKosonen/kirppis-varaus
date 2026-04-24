@@ -280,25 +280,63 @@
 }
 
 .modal-content {
-    background: white;
-    padding: 2em;
-    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto !important;
+    width: 50vw !important;
+    max-width: 600px !important;
+    min-width: 320px !important;
+
+    background: #fff;
+    padding-left: 2em;
+    padding-right: 2em;
+    padding-top: 0.2em;
+    padding-bottom: 0.5em;
+    border-radius: 12px;
+
+    box-sizing: border-box;
+}
+
+.vahvistus-tiedot {
+    display: grid;
+}
+
+.vahvistus-tiedot p {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding: 0.1em 0;
 }
 
 .hidden {
     display: none;
 }
 
-.mobilepay-button {
-    background-color: aqua;
+body.modal-open {
+    overflow: hidden;
 }
 
-.kortti-button {
-    background-color: aqua;
+.maksu-napit {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-top: 2em;
 }
 
-.maksu-button {
-    background-color: aqua;
+.modal-napit button {
+    padding: 0.8em 1.5em;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+#maksu-button {
+    background: #000000;
+    color: white;
+}
+
+#close-modal {
+    background: #eee;
 }
 
 
