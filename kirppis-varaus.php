@@ -286,18 +286,17 @@ add_shortcode('kirppis_varauslomake', function() {
             <form id="maksu-form">
 
                 <h3>Vahvista varaus</h3>
-                <p>Tarkista, että alla olevat tiedot ovat oikein. Painamalla "Vahvista varaus" sinut ohjataan MobilePayn maksupalveluun suorittamaan varausmaksu.</p>
 
                 <div class="vahvistus-tiedot">
+                    <p><strong>Paikka:</strong> <span id="vahvistus-paikka"></span></p>
                     <p><strong>Etunimi:</strong> <span id="vahvistus-etunimi"></span></p>
                     <p><strong>Sukunimi:</strong> <span id="vahvistus-sukunimi"></span></p>
                     <p><strong>Sähköposti:</strong> <span id="vahvistus-email"></span></p>
-                    <p><strong>Paikka:</strong> <span id="vahvistus-paikka"></span></p>
                 </div>
 
                 <div class="modal-napit">
-                    <button type="submit" id="maksu-button">Vahvista varaus</button>
-                    <button id="close-modal">Sulje</button>
+                    <button type="submit" id="maksu-button">Maksa varaus</button>
+                    <button type="button" id="close-modal">Sulje</button>
                 </div>
 
                 <button type="submit" id="testi-button">Tallenna varaus (TESTI)</button>
