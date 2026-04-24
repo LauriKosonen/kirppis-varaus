@@ -66,7 +66,7 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     $now = current_time('mysql');
     $reserved_until = date('Y-m-d H:i:s', strtotime($now . ' +10 minutes'));
 
-    // 🔑 GENEROI PAYMENT REFERENCE (tärkeä MobilePaylle)
+    //PAYMENT REFERENCE
     $payment_reference = 'VARAUS-' . wp_generate_uuid4();
 
     // Insert
@@ -96,15 +96,6 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         'payment_reference' => $payment_reference
     ];
 }
-//väliaikainen testi. poista myöhemmin
-// add_action('init', function() {
-//     $result = luo_varaus('Paikka-1', 'Matti', 'Meikäläinen', 'matti@testi.fi');
-
-//     echo '<pre>';
-//     print_r($result);
-//     echo '</pre>';
-//     exit;
-// });
 
 //AJAX
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
