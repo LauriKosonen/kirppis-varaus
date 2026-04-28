@@ -97,6 +97,86 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     ];
 }
 
+//toimii vain julkisessa ympäristössä??? permalinks pitää olla päällä???
+add_action('rest_api_init', function () {
+    register_rest_route('varaus/v1', '/mobilepay-webhook', [
+        'methods' => 'POST',
+        'callback' => 'mobilepay_webhook_handler',
+        'permission_callback' => '__return_true'
+    ]);
+});
+
+function mobilepay_webhook_handler($request) {
+    global $wpdb;
+    $table = $wpdb->prefix . 'varaukset';
+
+    // haetaan JSON-data
+    $data = $request->get_json_params();
+
+    if (!$data) {
+        return new WP_REST_Response(['error' => 'No data'], 400);
+    }
+
+    // debug. voi poistaa
+    error_log('MobilePay webhook: ' . print_r($data, true));
+
+    // nämä riippuvat MobilePayn payloadista
+    $payment_reference = $data['merchantReference'] ?? $data['orderId'] ?? null;
+    $status = $data['status'] ?? null;
+
+    if (!$payment_reference) {
+        return new WP_REST_Response(['error' => 'Missing reference'], 400);
+    }
+
+    //tarkistetaan että varaus löytyy
+    $reservation = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $table WHERE payment_reference = %s",
+        $payment_reference
+    ));
+
+    if (!$reservation) {
+        return new WP_REST_Response(['error' => 'Reservation not found'], 404);
+    }
+
+    // ONNISTUNUT MAKSU
+    //Mahdollinen duplicate esto
+    if ($reservation->status === 'paid') {
+        return new WP_REST_Response(['already_processed' => true], 200);
+    }
+    if ($status === 'PAID' || $status === 'CAPTURED') {
+
+        $wpdb->update(
+            $table,
+            [
+                'status' => 'paid'
+            ],
+            [
+                'payment_reference' => $payment_reference
+            ]
+        );
+
+        return new WP_REST_Response(['success' => true], 200);
+    }
+
+    // epäonnistunut maksu
+    if ($status === 'CANCELLED' || $status === 'EXPIRED') {
+
+        $wpdb->update(
+            $table,
+            [
+                'status' => 'expired'
+            ],
+            [
+                'payment_reference' => $payment_reference
+            ]
+        );
+
+        return new WP_REST_Response(['cancelled' => true], 200);
+    }
+
+    return new WP_REST_Response(['ignored' => true], 200);
+}
+
 //AJAX
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
 add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');

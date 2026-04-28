@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    //muutetaan id:t numeroiksi
     vapaatPoydat.sort((a, b) => {
         const numA = parseInt(a.id.match(/\d+/));
         const numB = parseInt(b.id.match(/\d+/));
