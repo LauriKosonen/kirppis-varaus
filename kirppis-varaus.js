@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-        // TESTIDATA (myöhemmin tämä tulee backendista)
+        // TESTIDATA (myöhemmin backendista)
     const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
     console.log("JS ladattu");
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     //haetaan kaikki svg pöydät
     const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
-    //haetaan vapaat pöydät
     const vapaatPoydat = [];
 
     kaikkiPoydat.forEach(poyta => {
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return numA - numB;
     });
 
-    // Väritetään kartta
+    //kartan värit
     kaikkiPoydat.forEach(poyta => {
         if (varatutPoydat.includes(poyta.id)) {
             poyta.style.fill = 'orange';
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Hae kaikki dropdownit
+    //kaikki dropdownit
     const dropdowns = document.querySelectorAll('.dropdown');
 
     // Loopataan dropdownit

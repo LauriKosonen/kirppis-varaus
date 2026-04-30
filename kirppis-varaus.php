@@ -281,9 +281,24 @@ add_shortcode('kartta_kortetalo', function() {
         return '
             <div class="kartta-pohja">
                 <h3 class="kartta-otsikko">PAIKKAKARTTA</h3>
-                ' . $svg . '
+
+                <div class="svg-wrapper">
+                    ' . $svg . '
+                </div>
+
+                <div class="kartta-legend">
+                    <div class="legend-item">
+                        <span class="color-box green"></span>
+                        Vapaa
+                    </div>
+
+                    <div class="legend-item">
+                        <span class="color-box orange"></span>
+                        Varattu
+                    </div>
+                </div>
             </div>
-            ';
+        ';
     }
     else {
         return '<p>Karttaa ei löytynyt.</p>';
@@ -368,6 +383,7 @@ add_shortcode('kirppis_varauslomake', function() {
             <form id="maksu-form">
 
                 <h3>Vahvista varaus</h3>
+                <p>Tarkista että antamasi tiedot ovat oikein. Painamalla "Maksa varaus" sinut ohjataan MobilePay:n maksupalveluun suorittamaan varausmaksu.</p>
 
                 <div class="vahvistus-tiedot">
                     <p><strong>Paikka:</strong> <span id="vahvistus-paikka"></span></p>
