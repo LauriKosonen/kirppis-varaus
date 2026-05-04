@@ -42,6 +42,7 @@ function varaus_plugin_create_table() {
     dbDelta($sql);
 }
 
+// Varauksen luonti.Tarkistetaan onko paikka vapaa ja tallennetaan tiedot tietokantaan
 function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
@@ -66,10 +67,10 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     $now = current_time('mysql');
     $reserved_until = date('Y-m-d H:i:s', strtotime($now . ' +10 minutes'));
 
-    //PAYMENT REFERENCE
+    //Payment repherence
     $payment_reference = 'VARAUS-' . wp_generate_uuid4();
 
-    // Insert
+    // Tietokantaan tallennus
     $inserted = $wpdb->insert($table, [
         'paikka_id' => $paikka_id,
         'etunimi' => $etunimi,
@@ -106,6 +107,7 @@ add_action('rest_api_init', function () {
     ]);
 });
 
+//Webhookin käsittely
 function mobilepay_webhook_handler($request) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
@@ -117,10 +119,10 @@ function mobilepay_webhook_handler($request) {
         return new WP_REST_Response(['error' => 'No data'], 400);
     }
 
-    // debug. voi poistaa
+    // debug
     error_log('MobilePay webhook: ' . print_r($data, true));
 
-    // nämä riippuvat MobilePayn payloadista
+    // haetaan maksun tiedot mobilepayn payloadista
     $payment_reference = $data['merchantReference'] ?? $data['orderId'] ?? null;
     $status = $data['status'] ?? null;
 
@@ -177,10 +179,12 @@ function mobilepay_webhook_handler($request) {
     return new WP_REST_Response(['ignored' => true], 200);
 }
 
-//AJAX
+//AJAX. mahdollistaa varauksen luonnin ilma sivun uudelleenlatausta
+//toinen näistä turhaa?????????????????????????????????????????????????????????????????????????
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
 add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');
 
+//haetaan lomakkeen tiedot ja luodaan varaus
 function luo_varaus_ajax() {
     $paikka_id = $_POST['paikka_id'];
     $etunimi = $_POST['etunimi'];
@@ -192,6 +196,8 @@ function luo_varaus_ajax() {
     wp_send_json($result);
 }
 
+
+//Tuodaan tyylit ja javascript
 
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(

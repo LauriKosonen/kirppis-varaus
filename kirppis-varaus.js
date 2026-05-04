@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-        // TESTIDATA (myöhemmin backendista)
+    // TESTIDATA (myöhemmin backendista)
     const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
     console.log("JS ladattu");
 
     console.log("AJAX URL:", ajax_object.ajax_url);
 
-    //haetaan kaikki svg pöydät
+    //haetaan svg kartasta kaikki pöydät "rect" elementtien mukaan
     const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
     const vapaatPoydat = [];
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             menu.classList.toggle('menu-open');
         });
 
-        // Option valinta
+        // Option/vaihtoehdon valinta
         options.forEach(option => {
             option.addEventListener('click', () => {
                 selected.innerText = option.innerText;
