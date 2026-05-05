@@ -329,7 +329,7 @@ function kirppis_varaukset_sivu() {
             ['id' => $id]
         );
 
-        echo '<div class="notice notice-success is-dismissible"><p>Varaus poistettu.</p></div>';
+        //echo '<div class="notice notice-success is-dismissible"><p>Varaus poistettu.</p></div>';
     }
 
     //kaikki varaukset uusimmasta vanhimpaan
