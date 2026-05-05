@@ -180,7 +180,6 @@ function mobilepay_webhook_handler($request) {
 }
 
 //AJAX. mahdollistaa varauksen luonnin ilma sivun uudelleenlatausta
-//toinen näistä turhaa?????????????????????????????????????????????????????????????????????????
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
 add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');
 
@@ -230,21 +229,190 @@ add_action('admin_menu', function() {
     );
 });
 
-// sivu dashboardiin
+// admin sivu dashboardiin
 function kirppis_varaukset_sivu() {
-    echo '<h1>Pöytävarausjärjestelmä</h1>';
-    echo '<p>kartta väliaikaisesti tässä</p>';
-    $svg_path = plugin_dir_path(__FILE__) . 'assets/poytakartta_kortetalo.svg';
 
-    if (file_exists($svg_path)) {
-        $svg = file_get_contents($svg_path);
-        echo '<div style="max-width:1000px;">';
-        echo $svg;
-        echo '</div>';
-    } else {
-        echo '<p>SVG-tiedostoa ei löytynyt.</p>';
+    //Navigaatio piilotettu printtausta varten
+    echo '
+        <style>
+
+        @media print {
+
+            #adminmenu,
+            #adminmenuback,
+            #adminmenuwrap,
+            #wpadminbar,
+            .button {
+                display: none !important;
+            }
+
+            #wpcontent,
+            #wpbody-content {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body {
+                background: white !important;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                border: 1px solid black;
+                padding: 6px;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+        }
+
+        </style>
+        ';
+
+    global $wpdb;
+
+    // tietokannan taulun nimi
+    $taulu = $wpdb->prefix . 'varaukset';
+
+    //Varauksen lisääminen
+    if (isset($_POST['add_varaus'])) {
+
+        $paikka = sanitize_text_field($_POST['paikka_id']);
+
+        // tarkistetaan onko paikka jo varattu
+        $existing = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM $taulu WHERE paikka_id = %s",
+                $paikka
+            )
+        );
+
+        if ($existing > 0) {
+
+            echo '<div class="notice notice-error"><p>Paikka on jo varattu!</p></div>';
+
+        } else {
+
+            $wpdb->insert(
+                $taulu,
+                [
+                    'paikka_id' => $paikka,
+                    'etunimi' => sanitize_text_field($_POST['etunimi']),
+                    'sukunimi' => sanitize_text_field($_POST['sukunimi']),
+                    'email' => sanitize_email($_POST['email']),
+                    'payment_reference' => '',
+                    'reserved_until' => null,
+                    'created_at' => current_time('mysql')
+                ]
+            );
+
+            echo '<div class="notice notice-success is-dismissible"><p>✔ Varaus lisätty.</p></div>';
+        }
     }
 
+    // varauksen poistaminen
+    if (isset($_GET['delete'])) {
+
+        $id = intval($_GET['delete']);
+
+        // nonce-tarkistus (TÄRKEÄ)
+        check_admin_referer('delete_varaus_' . $id);
+
+        $wpdb->delete(
+            $taulu,
+            ['id' => $id]
+        );
+
+        echo '<div class="notice notice-success is-dismissible"><p>Varaus poistettu.</p></div>';
+    }
+
+    //kaikki varaukset uusimmasta vanhimpaan
+    $varaukset = $wpdb->get_results("
+        SELECT * FROM $taulu
+        ORDER BY CAST(SUBSTRING_INDEX(paikka_id, '-', -1) AS UNSIGNED) ASC
+    ");
+
+    echo '<div class="wrap">';
+    echo '<h1>Paikkavaraukset</h1>';
+
+    // jos varauksia ei löydy
+    if (empty($varaukset)) {
+        echo '<p>Ei varauksia.</p>';
+        echo '</div>';
+        return;
+    }
+
+    //Vrauksen lisääminen manuaalisesti (käteis maksuja varten)
+    echo '<h2>Lisää varaus manuaalisesti</h2>';
+
+    echo '<form method="post" style="margin-bottom:20px;" class="no-print">';
+
+    echo '<input type="text" name="paikka_id" placeholder="Paikka-1" required> ';
+    echo '<input type="text" name="etunimi" placeholder="Etunimi" required> ';
+    echo '<input type="text" name="sukunimi" placeholder="Sukunimi" required> ';
+    echo '<input type="email" name="email" placeholder="Email" required> ';
+
+    echo '<input type="submit" name="add_varaus" class="button button-primary" value="Lisää varaus">';
+
+    echo '</form>';
+
+    // taulukko
+    echo '<button onclick="window.print()" style="margin-bottom: 1em" class="button button-primary">Tulosta varauslista</button>';
+    echo '<table class="widefat fixed striped">';
+
+    echo '<thead>';
+    echo '<tr>';
+
+    echo '<th>Paikka</th>';
+    echo '<th>Etunimi</th>';
+    echo '<th>Sukunimi</th>';
+    echo '<th>Sähköposti</th>';
+    echo '<th>Tila</th>';
+    echo '<th>Luotu</th>';
+    echo '<th class="no-print">Toiminnot</th>';
+
+    echo '</tr>';
+    echo '</thead>';
+
+    echo '<tbody>';
+
+    foreach ($varaukset as $varaus) {
+
+        echo '<tr>';
+
+        echo '<td>' . esc_html($varaus->paikka_id) . '</td>';
+        echo '<td>' . esc_html($varaus->etunimi) . '</td>';
+        echo '<td>' . esc_html($varaus->sukunimi) . '</td>';
+        echo '<td>' . esc_html($varaus->email) . '</td>';
+        echo '<td>' . esc_html($varaus->status) . '</td>';
+        echo '<td>' . esc_html($varaus->created_at) . '</td>';
+        
+        echo '<td class="no-print">';
+
+        echo '<a href="' . wp_nonce_url(
+            admin_url('admin.php?page=kirppis-varaukset&delete=' . $varaus->id),
+            'delete_varaus_' . $varaus->id
+        ) . '" 
+        class="button button-secondary"
+        onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">
+        Poista
+        </a>';
+
+        echo '</td>';
+
+        echo '</tr>';
+    }
+
+    echo '</tbody>';
+    echo '</table>';
+
+    echo '</div>';
 }
 
 // varaus sivun pohja
@@ -275,6 +443,7 @@ add_shortcode('varaus_pohja', function($atts) {
     <?php
     return ob_get_clean();
 });
+
 
 // KARTAT
 // Shortcode kortetalon pöytäkartalle
