@@ -312,7 +312,7 @@ function kirppis_varaukset_sivu() {
                 ]
             );
 
-            echo '<div class="notice notice-success is-dismissible"><p>✔ Varaus lisätty.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>Varaus lisätty.</p></div>';
         }
     }
 
