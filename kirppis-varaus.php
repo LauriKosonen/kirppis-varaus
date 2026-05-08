@@ -10,6 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+require_once plugin_dir_path(__FILE__) . '/email.php';
+
 // tietokanta taulun rekisteröinti ja luonti
 register_activation_hook(__FILE__, 'varaus_plugin_create_table');
 
@@ -90,6 +92,14 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
             'message' => 'DB error: ' . $wpdb->last_error
         ];
     }
+
+    vahvistus_email(
+        $email,
+        $etunimi,
+        $sukunimi,
+        $paikka_id
+    );
+    
 
     return [
         'success' => true,
