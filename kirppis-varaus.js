@@ -1,89 +1,120 @@
 document.addEventListener('DOMContentLoaded', () => {
     // TESTIDATA (myöhemmin backendista)
-    const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
+    // const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
     console.log("JS ladattu");
 
     console.log("AJAX URL:", ajax_object.ajax_url);
 
-    //haetaan svg kartasta kaikki pöydät "rect" elementtien mukaan
-    const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
+    //haetaan varatut pöydät tietokannasta AJAX:lla ja päivitetään kartta ja dropdown sen mukaan
+    jQuery.post(ajax_object.ajax_url, {
+        action: 'hae_varatut_poydat'
+    }, function(response) {
 
-    const vapaatPoydat = [];
+        if (response.success) {
 
-    kaikkiPoydat.forEach(poyta => {
-        if (!varatutPoydat.includes(poyta.id)) {
-            vapaatPoydat.push(poyta);
+            const varatutPoydat = response.data;
+
+            paivitaKartta(varatutPoydat);
+            luoDropdownit(varatutPoydat);
+
+            console.log("Varatut pöydät:", varatutPoydat);
         }
-    });
-
-    //muutetaan id:t numeroiksi
-    vapaatPoydat.sort((a, b) => {
-        const numA = parseInt(a.id.match(/\d+/));
-        const numB = parseInt(b.id.match(/\d+/));
-        return numA - numB;
     });
 
     //kartan värit
-    kaikkiPoydat.forEach(poyta => {
-        if (varatutPoydat.includes(poyta.id)) {
-            poyta.style.fill = 'orange';
-        } else {
-            poyta.style.fill = 'green';
-        }
-    });
+   function paivitaKartta(varatutPoydat) {
 
-    //kaikki dropdownit
-    const dropdowns = document.querySelectorAll('.dropdown');
+        const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
 
-    // Loopataan dropdownit
-    dropdowns.forEach(dropdown => {
-        const select = dropdown.querySelector('.select');
-        const nuoli = dropdown.querySelector('.nuoli');
-        const menu = dropdown.querySelector('.menu');
-        const selected = dropdown.querySelector('.selected');
+        kaikkiPoydat.forEach(poyta => {
 
-        // Tyhjennetään menu
-        menu.innerHTML = '';
+            if (varatutPoydat.includes(poyta.id)) {
+                poyta.style.fill = 'orange';
+            } else {
+                poyta.style.fill = 'green';
+            }
+        });
+    }
 
-        // Lisätään vapaat pöydät dropdowniin
-        vapaatPoydat.forEach(poyta => {
-            const li = document.createElement('li');
-            li.innerText = poyta.id;
-            menu.appendChild(li);
+    //dropdownien luonti vapaista pöydistä ja tapahtumien käsittelijät
+    function luoDropdownit(varatutPoydat) {
+
+        const kaikkiPoydat = document.querySelectorAll('svg rect[id^="Paikka-"]');
+
+        const vapaatPoydat = [];
+
+        kaikkiPoydat.forEach(poyta => {
+
+            if (!varatutPoydat.includes(poyta.id)) {
+                vapaatPoydat.push(poyta);
+            }
         });
 
-        // Haetaan uudet optionit
-        const options = dropdown.querySelectorAll('.menu li');
+        vapaatPoydat.sort((a, b) => {
 
-        // Dropdown auki/kiinni
-        select.addEventListener('click', () => {
-            select.classList.toggle('select-clicked');
-            nuoli.classList.toggle('nuoli-rotate');
-            menu.classList.toggle('menu-open');
+            const numA = parseInt(a.id.match(/\d+/));
+            const numB = parseInt(b.id.match(/\d+/));
+
+            return numA - numB;
         });
 
-        // Option/vaihtoehdon valinta
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                selected.innerText = option.innerText;
+        const dropdowns = document.querySelectorAll('.dropdown');
 
-                document.getElementById('paikka').value = option.innerText;
+        dropdowns.forEach(dropdown => {
 
-                console.log("Valittu paikka:", option.innerText);
+            // Poistetaan vanhat event listenerit kloonaamalla elementti
+            const oldSelect = dropdown.querySelector('.select');
+            const newSelect = oldSelect.cloneNode(true);
 
-                select.classList.remove('select-clicked');
-                nuoli.classList.remove('nuoli-rotate');
-                menu.classList.remove('menu-open');
+            oldSelect.parentNode.replaceChild(newSelect, oldSelect);
 
-                options.forEach(opt => {
-                    opt.classList.remove('active');
+            const select = dropdown.querySelector('.select');
+            const nuoli = dropdown.querySelector('.nuoli');
+            const menu = dropdown.querySelector('.menu');
+            const selected = dropdown.querySelector('.selected');
+
+            menu.innerHTML = '';
+
+            vapaatPoydat.forEach(poyta => {
+
+                const li = document.createElement('li');
+
+                li.innerText = poyta.id;
+
+                menu.appendChild(li);
+            });
+
+            const options = dropdown.querySelectorAll('.menu li');
+
+            select.addEventListener('click', () => {
+
+                select.classList.toggle('select-clicked');
+                nuoli.classList.toggle('nuoli-rotate');
+                menu.classList.toggle('menu-open');
+            });
+
+            options.forEach(option => {
+
+                option.addEventListener('click', () => {
+
+                    selected.innerText = option.innerText;
+
+                    document.getElementById('paikka').value = option.innerText;
+
+                    select.classList.remove('select-clicked');
+                    nuoli.classList.remove('nuoli-rotate');
+                    menu.classList.remove('menu-open');
+
+                    options.forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+
+                    option.classList.add('active');
                 });
-
-                option.classList.add('active');
             });
         });
-    });
+    }
 
     //formin kenttien tallennus tietokantaan
     jQuery('#varaus-form').on('submit', function(e) {
@@ -141,8 +172,27 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Vastaus:", response);
 
             if (response.success) {
-                alert('Varaus tallennettu tietokantaan!');
-                document.getElementById('maksu-modal').classList.add('hidden');
+                alert("Varaus onnistui! Vahvistus lähetetty sähköpostiin.");
+                    // Päivitetään kartta ja dropdownit uudestaan
+                    jQuery.post(ajax_object.ajax_url, {
+                        action: 'hae_varatut_poydat'
+                    }, function(response) {
+                        if (response.success) {
+                            const varatutPoydat = response.data;
+                            paivitaKartta(varatutPoydat);
+                            luoDropdownit(varatutPoydat);
+
+                            // Tyhjennetään lomake
+                            // jQuery('#etunimi').val('');
+                            // jQuery('#sukunimi').val('');
+                            // jQuery('#email').val('');
+                            // jQuery('#paikka').val('');
+                            // document.querySelector('.selected').innerText = 'Valitse paikkanumero';
+                            // jQuery('#paikka').val('');
+                            document.getElementById('maksu-modal').classList.add('hidden');
+                        }
+                    });
+
             } else {
                 alert(response.message);
             }

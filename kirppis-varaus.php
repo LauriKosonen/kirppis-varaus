@@ -108,6 +108,24 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     ];
 }
 
+// Haetaan varatut pöydät tietokannasta karttaa varten
+function hae_varatut_poydat() {
+
+    global $wpdb;
+
+    $taulu = $wpdb->prefix . 'varaukset';
+
+    $varaukset = $wpdb->get_col("
+        SELECT paikka_id
+        FROM $taulu
+    ");
+
+    wp_send_json_success($varaukset);
+}
+
+add_action('wp_ajax_hae_varatut_poydat', 'hae_varatut_poydat');
+add_action('wp_ajax_nopriv_hae_varatut_poydat', 'hae_varatut_poydat');
+
 //toimii vain julkisessa ympäristössä??? permalinks pitää olla päällä???
 add_action('rest_api_init', function () {
     register_rest_route('varaus/v1', '/mobilepay-webhook', [
