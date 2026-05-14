@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // TESTIDATA (myöhemmin backendista)
-    // const varatutPoydat = ['Paikka-2', 'Paikka-5', 'Paikka-18'];
 
     console.log("JS ladattu");
 

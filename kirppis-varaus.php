@@ -29,16 +29,10 @@ function varaus_plugin_create_table() {
         etunimi VARCHAR(100) NOT NULL,
         sukunimi VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
-
-        status VARCHAR(20) NOT NULL DEFAULT 'pending_payment',
-        payment_reference VARCHAR(255) NOT NULL,
-
-        reserved_until DATETIME,
-        created_at DATETIME NOT NULL,
+        luotu DATETIME NOT NULL,
 
         PRIMARY KEY (id),
-        KEY paikka_id (paikka_id),
-        KEY payment_reference (payment_reference)
+        KEY paikka_id (paikka_id)
     ) $charset_collate;";
 
     dbDelta($sql);
@@ -49,17 +43,12 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
 
-    $current_time = current_time('mysql');
 
     // Tarkistetaan onko paikka varattu
     $existing = $wpdb->get_var($wpdb->prepare("
         SELECT COUNT(*) FROM $table
         WHERE paikka_id = %s
-        AND (
-            status = 'paid'
-            OR (status = 'pending_payment' AND reserved_until > %s)
-        )
-    ", $paikka_id, $current_time));
+    ", $paikka_id));
 
     if ($existing > 0) {
         return ['success' => false, 'message' => 'Paikka on jo varattu'];
@@ -67,10 +56,6 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
 
     // Aikaleimat
     $now = current_time('mysql');
-    $reserved_until = date('Y-m-d H:i:s', strtotime($now . ' +10 minutes'));
-
-    //Payment repherence
-    $payment_reference = 'VARAUS-' . wp_generate_uuid4();
 
     // Tietokantaan tallennus
     $inserted = $wpdb->insert($table, [
@@ -78,12 +63,7 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         'etunimi' => $etunimi,
         'sukunimi' => $sukunimi,
         'email' => $email,
-
-        'status' => 'pending_payment',
-        'payment_reference' => $payment_reference,
-
-        'reserved_until' => $reserved_until,
-        'created_at' => $now
+        'luotu' => $now
     ]);
 
     if (!$inserted || $wpdb->last_error) {
@@ -104,7 +84,6 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     return [
         'success' => true,
         'message' => 'Varaus luotu',
-        'payment_reference' => $payment_reference
     ];
 }
 
@@ -126,86 +105,6 @@ function hae_varatut_poydat() {
 add_action('wp_ajax_hae_varatut_poydat', 'hae_varatut_poydat');
 add_action('wp_ajax_nopriv_hae_varatut_poydat', 'hae_varatut_poydat');
 
-//toimii vain julkisessa ympäristössä??? permalinks pitää olla päällä???
-add_action('rest_api_init', function () {
-    register_rest_route('varaus/v1', '/mobilepay-webhook', [
-        'methods' => 'POST',
-        'callback' => 'mobilepay_webhook_handler',
-        'permission_callback' => '__return_true'
-    ]);
-});
-
-//Webhookin käsittely
-function mobilepay_webhook_handler($request) {
-    global $wpdb;
-    $table = $wpdb->prefix . 'varaukset';
-
-    // haetaan JSON-data
-    $data = $request->get_json_params();
-
-    if (!$data) {
-        return new WP_REST_Response(['error' => 'No data'], 400);
-    }
-
-    // debug
-    error_log('MobilePay webhook: ' . print_r($data, true));
-
-    // haetaan maksun tiedot mobilepayn payloadista
-    $payment_reference = $data['merchantReference'] ?? $data['orderId'] ?? null;
-    $status = $data['status'] ?? null;
-
-    if (!$payment_reference) {
-        return new WP_REST_Response(['error' => 'Missing reference'], 400);
-    }
-
-    //tarkistetaan että varaus löytyy
-    $reservation = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM $table WHERE payment_reference = %s",
-        $payment_reference
-    ));
-
-    if (!$reservation) {
-        return new WP_REST_Response(['error' => 'Reservation not found'], 404);
-    }
-
-    // ONNISTUNUT MAKSU
-    //Mahdollinen duplicate esto
-    if ($reservation->status === 'paid') {
-        return new WP_REST_Response(['already_processed' => true], 200);
-    }
-    if ($status === 'PAID' || $status === 'CAPTURED') {
-
-        $wpdb->update(
-            $table,
-            [
-                'status' => 'paid'
-            ],
-            [
-                'payment_reference' => $payment_reference
-            ]
-        );
-
-        return new WP_REST_Response(['success' => true], 200);
-    }
-
-    // epäonnistunut maksu
-    if ($status === 'CANCELLED' || $status === 'EXPIRED') {
-
-        $wpdb->update(
-            $table,
-            [
-                'status' => 'expired'
-            ],
-            [
-                'payment_reference' => $payment_reference
-            ]
-        );
-
-        return new WP_REST_Response(['cancelled' => true], 200);
-    }
-
-    return new WP_REST_Response(['ignored' => true], 200);
-}
 
 //AJAX. mahdollistaa varauksen luonnin ilma sivun uudelleenlatausta
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
@@ -334,9 +233,7 @@ function kirppis_varaukset_sivu() {
                     'etunimi' => sanitize_text_field($_POST['etunimi']),
                     'sukunimi' => sanitize_text_field($_POST['sukunimi']),
                     'email' => sanitize_email($_POST['email']),
-                    'payment_reference' => '',
-                    'reserved_until' => null,
-                    'created_at' => current_time('mysql')
+                    'luotu' => current_time('mysql')
                 ]
             );
 
@@ -401,7 +298,6 @@ function kirppis_varaukset_sivu() {
     echo '<th>Etunimi</th>';
     echo '<th>Sukunimi</th>';
     echo '<th>Sähköposti</th>';
-    echo '<th>Tila</th>';
     echo '<th>Luotu</th>';
     echo '<th class="no-print">Toiminnot</th>';
 
@@ -418,8 +314,7 @@ function kirppis_varaukset_sivu() {
         echo '<td>' . esc_html($varaus->etunimi) . '</td>';
         echo '<td>' . esc_html($varaus->sukunimi) . '</td>';
         echo '<td>' . esc_html($varaus->email) . '</td>';
-        echo '<td>' . esc_html($varaus->status) . '</td>';
-        echo '<td>' . esc_html($varaus->created_at) . '</td>';
+        echo '<td>' . esc_html($varaus->luotu) . '</td>';
         
         echo '<td class="no-print">';
 
