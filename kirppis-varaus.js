@@ -96,6 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Haetaan varatut pöydät sivun latautuessa
     paivitaKarttaJaDropdown();
 
+    // Vahvistusmodaalin sulkeminen
+    document.getElementById('close-ilmoitus-modal').addEventListener('click', () => {
+        document.getElementById('ilmoitus-modal').classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    });
+
     // Formin kenttien tallennus tietokantaan
     jQuery('#varaus-form').on('submit', function(e) {
         e.preventDefault();
@@ -118,13 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Lähetetään varaus ja päivitetään kartta
         jQuery.post(ajax_object.ajax_url, data, function(response) {
             if (response.success) {
-                alert("Varaus onnistui! Vahvistus lähetetty sähköpostiin.");
+                // Avataan vahvistusmodaali
+                document.getElementById('ilmoitus-modal').classList.remove('hidden');
+                document.body.classList.add('modal-open');
             } else {
                 alert(response.data);
             }
-            // Päivitetään kartta riippumatta tuloksesta
+            // Päivitetään kartta ja dropdown aina riippumatta tuloksesta
             paivitaKarttaJaDropdown();
         });
+
     });
 
 });

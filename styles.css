@@ -308,98 +308,56 @@
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
+    border-radius: 1em;
     z-index: 1000;
-
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
-.modal-content {
-    background: white;
-    padding: 2em;
-    border-radius: 10px;
-    position: relative;
-    z-index: 10;
+#ilmoitus-modal .modal-content {
+    text-align: center;
+    background-color: white;
+    padding: 3em 2em;
+    max-width: 400px;
+    border-radius: 1em;
+}
 
+.modal-ikoni {
+    font-size: 3em;
+    color: white;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    width: 1.8em;
+    height: 1.8em;
     display: flex;
-    flex-direction: column;
-    gap: 1.5em;
-
-    width: 50vw;
-    max-width: 600px;
-    min-width: 320px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.5em auto;
 }
 
-#maksu-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5em;
+#ilmoitus-modal h3 {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
 }
 
-.vahvistus-tiedot {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3em;
+#ilmoitus-modal p {
+    color: #555;
+    margin-bottom: 2em;
 }
 
-.vahvistus-tiedot p {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #eee;
-    padding: 0.3em 0;
-    margin: 0;
-}
-
-.modal-napit {
-    display: flex;
-    width: 100%;
-    gap: 1em;
-    margin-top: 2em;
-}
-
-.modal-napit button {
-    flex: 1;
-    padding: 0.8em 1.5em;
+#close-ilmoitus-modal {
+    padding: 0.8em 2em;
     border-radius: 8px;
     border: none;
-    cursor: pointer;
-}
-
-#maksu-button {
     background: #000;
     color: white;
-}
-
-#close-modal {
-    background: #eee;
-}
-
-.hidden {
-    display: none;
-}
-
-.modal-content form {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-}
-
-.modal-content form button {
-    flex: 1;
-}
-
-#close-modal {
-    border: none;
-    border-radius: 6px;
-    background: #eee;
     cursor: pointer;
-
-    align-self: center;
+    font-size: 1em;
 }
 
 

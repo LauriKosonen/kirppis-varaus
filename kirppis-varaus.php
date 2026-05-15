@@ -299,7 +299,15 @@ add_shortcode('kirppis_varauslomake', function() {
 
     </form>
     </div>
-    <!--maksu modal ikkuna -->
+    <!--vahvistus modal ikkuna -->
+    <div id="ilmoitus-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-ikoni">✓</div>
+            <h3>Varaus onnistui!</h3>
+            <p>Sähköpostiisi on lähetetty vahvistusviesti varauksen tiedoilla.</p>
+            <button id="close-ilmoitus-modal">Sulje</button>
+        </div>
+    </div>
 
     <?php
     return ob_get_clean();
