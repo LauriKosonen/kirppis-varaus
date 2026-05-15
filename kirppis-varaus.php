@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Kirppis varausjärjestelmä
  * Description: Pöydänvarausjärjestelmä kirpputoreille
- * Version: 1.0
+ * Version: 1.1
  * Author: Lauri Kosonen
  */
 
@@ -112,14 +112,18 @@ add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');
 
 //haetaan lomakkeen tiedot ja luodaan varaus
 function luo_varaus_ajax() {
-    $paikka_id = $_POST['paikka_id'];
-    $etunimi = $_POST['etunimi'];
-    $sukunimi = $_POST['sukunimi'];
-    $email = $_POST['email'];
+    $paikka_id = sanitize_text_field($_POST['paikka_id']);
+    $etunimi   = sanitize_text_field($_POST['etunimi']);
+    $sukunimi  = sanitize_text_field($_POST['sukunimi']);
+    $email     = sanitize_email($_POST['email']);
 
     $result = luo_varaus($paikka_id, $etunimi, $sukunimi, $email);
 
-    wp_send_json($result);
+    if ($result['success']) {
+        wp_send_json_success($result['message']);
+    } else {
+        wp_send_json_error($result['message']);
+    }
 }
 
 
@@ -157,186 +161,7 @@ add_action('admin_menu', function() {
 });
 
 // admin sivu dashboardiin
-function kirppis_varaukset_sivu() {
-
-    //Navigaatio piilotettu printtausta varten
-    echo '
-        <style>
-
-        @media print {
-
-            #adminmenu,
-            #adminmenuback,
-            #adminmenuwrap,
-            #wpadminbar,
-            .button {
-                display: none !important;
-            }
-
-            #wpcontent,
-            #wpbody-content {
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            body {
-                background: white !important;
-            }
-
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-            th, td {
-                border: 1px solid black;
-                padding: 6px;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-        }
-
-        </style>
-        ';
-
-    global $wpdb;
-
-    // tietokannan taulun nimi
-    $taulu = $wpdb->prefix . 'varaukset';
-
-    //Varauksen lisääminen
-    if (isset($_POST['add_varaus'])) {
-
-        $paikka = sanitize_text_field($_POST['paikka_id']);
-
-        // tarkistetaan onko paikka jo varattu
-        $existing = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM $taulu WHERE paikka_id = %s",
-                $paikka
-            )
-        );
-
-        if ($existing > 0) {
-
-            echo '<div class="notice notice-error"><p>Paikka on jo varattu!</p></div>';
-
-        } else {
-
-            $wpdb->insert(
-                $taulu,
-                [
-                    'paikka_id' => $paikka,
-                    'etunimi' => sanitize_text_field($_POST['etunimi']),
-                    'sukunimi' => sanitize_text_field($_POST['sukunimi']),
-                    'email' => sanitize_email($_POST['email']),
-                    'luotu' => current_time('mysql')
-                ]
-            );
-
-            echo '<div class="notice notice-success is-dismissible"><p>Varaus lisätty.</p></div>';
-        }
-    }
-
-    // varauksen poistaminen
-    if (isset($_GET['delete'])) {
-
-        $id = intval($_GET['delete']);
-
-        // nonce-tarkistus (TÄRKEÄ)
-        check_admin_referer('delete_varaus_' . $id);
-
-        $wpdb->delete(
-            $taulu,
-            ['id' => $id]
-        );
-
-        //echo '<div class="notice notice-success is-dismissible"><p>Varaus poistettu.</p></div>';
-    }
-
-    //kaikki varaukset uusimmasta vanhimpaan
-    $varaukset = $wpdb->get_results("
-        SELECT * FROM $taulu
-        ORDER BY CAST(SUBSTRING_INDEX(paikka_id, '-', -1) AS UNSIGNED) ASC
-    ");
-
-    echo '<div class="wrap">';
-    echo '<h1>Paikkavaraukset</h1>';
-
-    // jos varauksia ei löydy
-    if (empty($varaukset)) {
-        echo '<p>Ei varauksia.</p>';
-        echo '</div>';
-        return;
-    }
-
-    //Vrauksen lisääminen manuaalisesti (käteis maksuja varten)
-    echo '<h2>Lisää varaus manuaalisesti</h2>';
-
-    echo '<form method="post" style="margin-bottom:20px;" class="no-print">';
-
-    echo '<input type="text" name="paikka_id" placeholder="Paikka-1" required> ';
-    echo '<input type="text" name="etunimi" placeholder="Etunimi" required> ';
-    echo '<input type="text" name="sukunimi" placeholder="Sukunimi" required> ';
-    echo '<input type="email" name="email" placeholder="Email" required> ';
-
-    echo '<input type="submit" name="add_varaus" class="button button-primary" value="Lisää varaus">';
-
-    echo '</form>';
-
-    // taulukko
-    echo '<button onclick="window.print()" style="margin-bottom: 1em" class="button button-primary">Tulosta varauslista</button>';
-    echo '<table class="widefat fixed striped">';
-
-    echo '<thead>';
-    echo '<tr>';
-
-    echo '<th>Paikka</th>';
-    echo '<th>Etunimi</th>';
-    echo '<th>Sukunimi</th>';
-    echo '<th>Sähköposti</th>';
-    echo '<th>Luotu</th>';
-    echo '<th class="no-print">Toiminnot</th>';
-
-    echo '</tr>';
-    echo '</thead>';
-
-    echo '<tbody>';
-
-    foreach ($varaukset as $varaus) {
-
-        echo '<tr>';
-
-        echo '<td>' . esc_html($varaus->paikka_id) . '</td>';
-        echo '<td>' . esc_html($varaus->etunimi) . '</td>';
-        echo '<td>' . esc_html($varaus->sukunimi) . '</td>';
-        echo '<td>' . esc_html($varaus->email) . '</td>';
-        echo '<td>' . esc_html($varaus->luotu) . '</td>';
-        
-        echo '<td class="no-print">';
-
-        echo '<a href="' . wp_nonce_url(
-            admin_url('admin.php?page=kirppis-varaukset&delete=' . $varaus->id),
-            'delete_varaus_' . $varaus->id
-        ) . '" 
-        class="button button-secondary"
-        onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">
-        Poista
-        </a>';
-
-        echo '</td>';
-
-        echo '</tr>';
-    }
-
-    echo '</tbody>';
-    echo '</table>';
-
-    echo '</div>';
-}
+require_once plugin_dir_path(__FILE__) . '/hallintapaneeli.php';
 
 // varaus sivun pohja
 add_shortcode('varaus_pohja', function($atts) {
@@ -475,33 +300,6 @@ add_shortcode('kirppis_varauslomake', function() {
     </form>
     </div>
     <!--maksu modal ikkuna -->
-    <div id="maksu-modal" class="modal hidden">
-        <div class="modal-content">
-
-            <form id="maksu-form">
-
-                <h3>Vahvista varaus</h3>
-                <p>Tarkista että antamasi tiedot ovat oikein. Painamalla "Maksa varaus" sinut ohjataan MobilePay:n maksupalveluun suorittamaan varausmaksu.</p>
-
-                <div class="vahvistus-tiedot">
-                    <p><strong>Paikka:</strong> <span id="vahvistus-paikka"></span></p>
-                    <p><strong>Etunimi:</strong> <span id="vahvistus-etunimi"></span></p>
-                    <p><strong>Sukunimi:</strong> <span id="vahvistus-sukunimi"></span></p>
-                    <p><strong>Sähköposti:</strong> <span id="vahvistus-email"></span></p>
-                </div>
-
-                <div class="modal-napit">
-                    <button type="submit" id="maksu-button">Maksa varaus</button>
-                    <button type="button" id="close-modal">Sulje</button>
-                </div>
-
-                <button type="submit" id="testi-button">Tallenna varaus (TESTI)</button>
-
-            </form>
-
-
-        </div>
-    </div>
 
     <?php
     return ob_get_clean();
