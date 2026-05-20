@@ -11,16 +11,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once plugin_dir_path(__FILE__) . '/email.php';
+require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
+
+// Rekisteröidään laskutus-asetus
+add_action('admin_init', function() {
+    register_setting('kirppis_asetukset', 'kirppis_laskutus_paalla');
+});
 
 // tietokanta taulun rekisteröinti ja luonti
 register_activation_hook(__FILE__, 'varaus_plugin_create_table');
 
 function varaus_plugin_create_table() {
     global $wpdb;
-
     $table_name = $wpdb->prefix . 'varaukset';
     $charset_collate = $wpdb->get_charset_collate();
-
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
     $sql = "CREATE TABLE $table_name (
@@ -30,7 +34,8 @@ function varaus_plugin_create_table() {
         sukunimi VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL,
         luotu DATETIME NOT NULL,
-
+        lasku_lahetetty TINYINT(1) NOT NULL DEFAULT 0,
+        laskunumero VARCHAR(30) DEFAULT NULL,
         PRIMARY KEY (id),
         KEY paikka_id (paikka_id)
     ) $charset_collate;";
@@ -65,6 +70,7 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         'email' => $email,
         'luotu' => $now
     ]);
+    $varaus_id = $wpdb->insert_id;
 
     if (!$inserted || $wpdb->last_error) {
         return [
@@ -77,7 +83,8 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         $email,
         $etunimi,
         $sukunimi,
-        $paikka_id
+        $paikka_id,
+        $varaus_id
     );
     
 
@@ -308,9 +315,12 @@ add_shortcode('kirppis_varauslomake', function() {
             <button id="close-ilmoitus-modal">Sulje</button>
         </div>
     </div>
+    
 
     <?php
+    
     return ob_get_clean();
+
 });
 
 

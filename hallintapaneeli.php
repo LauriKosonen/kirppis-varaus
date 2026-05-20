@@ -38,6 +38,15 @@ function kirppis_varaukset_sivu() {
         </style>
     ';
 
+    // Laskutusasetuksen tallennus
+    if (isset($_POST['kirppis_laskutus_paalla'])) {
+        update_option('kirppis_laskutus_paalla', '1');
+    } elseif (isset($_POST['tallenna_laskutusasetus'])) {
+        update_option('kirppis_laskutus_paalla', '0');
+    }
+
+    $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
+
     global $wpdb;
     $taulu = $wpdb->prefix . 'varaukset';
 
@@ -100,6 +109,22 @@ function kirppis_varaukset_sivu() {
     echo '<div class="wrap">';
     echo '<h1>Paikkavaraukset</h1>';
 
+    // Laskutusasetukset
+    echo '<form method="post" style="margin-bottom: 20px;" class="no-print">';
+    echo '<label style="font-size: 1.1em; font-weight: bold;">';
+    echo '<input type="checkbox" name="kirppis_laskutus_paalla" value="1" '
+        . checked('1', $laskutus_paalla, false) . ' style="margin-right: 8px;">';
+    echo 'Laskutus päällä – lasku lähetetään sähköpostin liitteenä';
+    echo '</label> ';
+    echo '<input type="submit" name="tallenna_laskutusasetus" class="button button-primary" value="Tallenna asetus">';
+    echo '</form>';
+
+    if ($laskutus_paalla === '1') {
+        echo '<div class="notice notice-warning"><p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p></div>';
+    } else {
+        echo '<div class="notice notice-info"><p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p></div>';
+    }
+
     // Manuaalinen lisäys
     echo '<h2>Lisää varaus manuaalisesti</h2>';
     echo '<form method="post" style="margin-bottom:20px;" class="no-print">';
@@ -125,6 +150,7 @@ function kirppis_varaukset_sivu() {
     echo '<th>Sukunimi</th>';
     echo '<th>Sähköposti</th>';
     echo '<th>Luotu</th>';
+    echo '<th>Lasku</th>';
     echo '<th class="no-print">Toiminnot</th>';
     echo '</tr></thead>';
     echo '<tbody>';
@@ -136,19 +162,23 @@ function kirppis_varaukset_sivu() {
         echo '<td>' . esc_html($varaus->sukunimi) . '</td>';
         echo '<td>' . esc_html($varaus->email) . '</td>';
         echo '<td>' . esc_html($varaus->luotu) . '</td>';
-        echo '<td class="no-print">';
 
+        $lasku_status = $varaus->lasku_lahetetty
+            ? '<span style="color: green;">✓ Lähetetty (' . esc_html($varaus->laskunumero) . ')</span>'
+            : '<span style="color: #999;">–</span>';
+        echo '<td>' . $lasku_status . '</td>';
+
+        echo '<td class="no-print">';
         echo '<a href="' . admin_url('admin.php?page=kirppis-varaukset&edit=' . $varaus->id) . '"
             class="button button-secondary">Muokkaa</a> ';
-
         echo '<a href="' . wp_nonce_url(
             admin_url('admin.php?page=kirppis-varaukset&delete=' . $varaus->id),
             'delete_varaus_' . $varaus->id
         ) . '"
             class="button button-secondary"
             onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">Poista</a>';
-
         echo '</td>';
+
         echo '</tr>';
     }
 
