@@ -38,13 +38,6 @@ function kirppis_varaukset_sivu() {
         </style>
     ';
 
-    // Laskutusasetuksen tallennus
-    if (isset($_POST['kirppis_laskutus_paalla'])) {
-        update_option('kirppis_laskutus_paalla', '1');
-    } elseif (isset($_POST['tallenna_laskutusasetus'])) {
-        update_option('kirppis_laskutus_paalla', '0');
-    }
-
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
 
     global $wpdb;
@@ -99,6 +92,7 @@ function kirppis_varaukset_sivu() {
         echo '<div class="notice notice-success is-dismissible"><p>Varaus päivitetty.</p></div>';
     }
 
+    $tallennettu_hinta = get_option('kirppis_poyta_hinta', '');
 
     // Kaikki varaukset
     $varaukset = $wpdb->get_results("
@@ -107,26 +101,84 @@ function kirppis_varaukset_sivu() {
     ");
 
     echo '<div class="wrap">';
-    echo '<h1>Paikkavaraukset</h1>';
+    echo '<h1 style="margin-bottom: 1em;">Paikkavaraukset</h1>';
 
-    // Laskutusasetukset
-    echo '<form method="post" style="margin-bottom: 20px;" class="no-print">';
-    echo '<label style="font-size: 1.1em; font-weight: bold;">';
-    echo '<input type="checkbox" name="kirppis_laskutus_paalla" value="1" '
+    // Laskutusasetukset – tallennetaan AJAX:lla ilman nappia
+    $laskutus_nonce = wp_create_nonce('tallenna_laskutusasetus_nonce');
+    echo '<div style="margin-bottom: 20px;" class="no-print">';
+    echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
+    echo '<input type="checkbox" id="kirppis_laskutus_checkbox" value="1" '
         . checked('1', $laskutus_paalla, false) . ' style="margin-right: 8px;">';
     echo 'Laskutus päällä – lasku lähetetään sähköpostin liitteenä';
-    echo '</label> ';
-    echo '<input type="submit" name="tallenna_laskutusasetus" class="button button-primary" value="Tallenna asetus">';
-    echo '</form>';
+    echo '</label>';
+    echo ' <span id="laskutus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
 
-    if ($laskutus_paalla === '1') {
-        echo '<div class="notice notice-warning"><p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p></div>';
-    } else {
-        echo '<div class="notice notice-info"><p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p></div>';
-    }
+    echo '<script>
+    document.getElementById("kirppis_laskutus_checkbox").addEventListener("change", function() {
+        var arvo = this.checked ? "1" : "0";
+        var tila = document.getElementById("laskutus-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_laskutusasetus",
+            arvo: arvo,
+            nonce: "' . $laskutus_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "✓ Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+                // Päivitetään ilmoitusbanneri
+                var banneri = document.getElementById("laskutus-banneri");
+                if (arvo === "1") {
+                    banneri.className = "notice notice-warning is-dismissible";
+                    banneri.innerHTML = "<p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p>";
+                } else {
+                    banneri.className = "notice notice-info is-dismissible";
+                    banneri.innerHTML = "<p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p>";
+                }
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
+
+    $banneri_class = $laskutus_paalla === '1' ? 'notice notice-warning is-dismissible' : 'notice notice-info is-dismissible';
+    $banneri_teksti = $laskutus_paalla === '1'
+        ? '<p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p>'
+        : '<p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p>';
+    echo '<div id="laskutus-banneri" class="' . $banneri_class . '">' . $banneri_teksti . '</div>';
+
+    $hinta_nonce = wp_create_nonce('tallenna_hinta_nonce');
+    echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
+    echo '<label for="poyta_hinta" style="font-weight:600;">Varauksen hinta (€):</label>';
+    echo '<input type="text" id="poyta_hinta" value="' . esc_attr($tallennettu_hinta !== '' ? number_format((float)$tallennettu_hinta, 2, ',', '') : '') . '" placeholder="0,00" style="width:90px;">';
+    echo '<button id="tallenna_hinta_btn" class="button button-secondary">Tallenna hinta</button>';
+    echo '<span id="hinta-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("tallenna_hinta_btn").addEventListener("click", function() {
+        var arvo = document.getElementById("poyta_hinta").value;
+        var tila = document.getElementById("hinta-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_hinta",
+            hinta: arvo,
+            nonce: "' . $hinta_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
 
     // Manuaalinen lisäys
-    echo '<h2>Lisää varaus manuaalisesti</h2>';
+    echo '<h2 class="no-print">Lisää varaus manuaalisesti</h2>';
     echo '<form method="post" style="margin-bottom:20px;" class="no-print">';
     echo '<input type="text" name="paikka_id" placeholder="Paikka-1" required> ';
     echo '<input type="text" name="etunimi" placeholder="Etunimi" required> ';
@@ -141,8 +193,55 @@ function kirppis_varaukset_sivu() {
         return;
     }
 
+    // Tulosta-nappi ja Poista kaikki -nappi
+    $poista_kaikki_nonce = wp_create_nonce('poista_kaikki_varaukset_nonce');
+    echo '<div class="no-print" style="margin-bottom: 1em; display: flex; gap: 0.5em; align-items: center;">';
+    echo '<button onclick="window.print()" class="button button-primary">Tulosta varauslista</button>';
+    echo '<button id="poista_kaikki_btn" class="button" style="background:#d63638; border-color:#d63638; color:white;">Poista kaikki varaukset</button>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("poista_kaikki_btn").addEventListener("click", function() {
+        if (!confirm("Haluatko varmasti poistaa KAIKKI varaukset? Tätä ei voi perua.")) return;
+        var btn = this;
+        btn.disabled = true;
+        jQuery.post(ajaxurl, {
+            action: "poista_kaikki_varaukset",
+            nonce: "' . $poista_kaikki_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert("Virhe poistamisessa.");
+                btn.disabled = false;
+            }
+        });
+    });
+    </script>';
+
+    $maksettu_nonce = wp_create_nonce('merkitse_maksetuksi_nonce');
+    echo '<script>
+    function merkitseMaksetuksi(varausId, btn) {
+        if (!confirm("Merkitäänkö varaus maksetuksi?")) return;
+        btn.disabled = true;
+        jQuery.post(ajaxurl, {
+            action: "merkitse_maksetuksi",
+            varaus_id: varausId,
+            nonce: "' . $maksettu_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                var td = btn.closest("td").previousElementSibling;
+                td.innerHTML = "<span style=\"color:green;\">✓ Maksettu</span>";
+                btn.remove();
+            } else {
+                alert("Virhe merkinnässä.");
+                btn.disabled = false;
+            }
+        });
+    }
+    </script>';
+
     // Taulukko
-    echo '<button onclick="window.print()" style="margin-bottom: 1em" class="button button-primary">Tulosta varauslista</button>';
     echo '<table class="widefat fixed striped">';
     echo '<thead><tr>';
     echo '<th>Paikka</th>';
@@ -166,6 +265,11 @@ function kirppis_varaukset_sivu() {
         $lasku_status = $varaus->lasku_lahetetty
             ? '<span style="color: green;">✓ Lähetetty (' . esc_html($varaus->laskunumero) . ')</span>'
             : '<span style="color: #999;">–</span>';
+
+        if (!empty($varaus->maksettu)) {
+            $lasku_status = '<span style="color: green; font-weight:bold;">✓ Maksettu</span>';
+        }
+
         echo '<td>' . $lasku_status . '</td>';
 
         echo '<td class="no-print">';
@@ -177,6 +281,11 @@ function kirppis_varaukset_sivu() {
         ) . '"
             class="button button-secondary"
             onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">Poista</a>';
+
+        if (empty($varaus->maksettu) && !empty($varaus->lasku_lahetetty)) {
+            echo ' <button class="button button-secondary" onclick="merkitseMaksetuksi(' . $varaus->id . ', this)">Merkitse maksetuksi</button>';
+        }
+
         echo '</td>';
 
         echo '</tr>';

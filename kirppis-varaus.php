@@ -36,6 +36,7 @@ function varaus_plugin_create_table() {
         luotu DATETIME NOT NULL,
         lasku_lahetetty TINYINT(1) NOT NULL DEFAULT 0,
         laskunumero VARCHAR(30) DEFAULT NULL,
+        maksettu TINYINT(1) NOT NULL DEFAULT 0,
         PRIMARY KEY (id),
         KEY paikka_id (paikka_id)
     ) $charset_collate;";
@@ -43,11 +44,10 @@ function varaus_plugin_create_table() {
     dbDelta($sql);
 }
 
-// Varauksen luonti.Tarkistetaan onko paikka vapaa ja tallennetaan tiedot tietokantaan
+// Varauksen luonti. Tarkistetaan onko paikka vapaa ja tallennetaan tiedot tietokantaan
 function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
     global $wpdb;
     $table = $wpdb->prefix . 'varaukset';
-
 
     // Tarkistetaan onko paikka varattu
     $existing = $wpdb->get_var($wpdb->prepare("
@@ -86,7 +86,6 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         $paikka_id,
         $varaus_id
     );
-    
 
     return [
         'success' => true,
@@ -113,11 +112,11 @@ add_action('wp_ajax_hae_varatut_poydat', 'hae_varatut_poydat');
 add_action('wp_ajax_nopriv_hae_varatut_poydat', 'hae_varatut_poydat');
 
 
-//AJAX. mahdollistaa varauksen luonnin ilma sivun uudelleenlatausta
+// AJAX: mahdollistaa varauksen luonnin ilman sivun uudelleenlatausta
 add_action('wp_ajax_luo_varaus', 'luo_varaus_ajax');
 add_action('wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax');
 
-//haetaan lomakkeen tiedot ja luodaan varaus
+// Haetaan lomakkeen tiedot ja luodaan varaus
 function luo_varaus_ajax() {
     $paikka_id = sanitize_text_field($_POST['paikka_id']);
     $etunimi   = sanitize_text_field($_POST['etunimi']);
@@ -133,9 +132,78 @@ function luo_varaus_ajax() {
     }
 }
 
+// Merkitään varaus maksetuksi admin-puolelta
+add_action('wp_ajax_merkitse_maksetuksi', 'merkitse_maksetuksi_ajax');
 
-//Tuodaan tyylit ja javascript
+function merkitse_maksetuksi_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
 
+    check_ajax_referer('merkitse_maksetuksi_nonce', 'nonce');
+
+    $id = intval($_POST['varaus_id']);
+
+    global $wpdb;
+    $wpdb->update(
+        $wpdb->prefix . 'varaukset',
+        ['maksettu' => 1],
+        ['id' => $id]
+    );
+
+    wp_send_json_success();
+}
+
+// AJAX: Hinnan tallennus
+add_action('wp_ajax_tallenna_hinta', 'tallenna_hinta_ajax');
+
+function tallenna_hinta_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+
+    check_ajax_referer('tallenna_hinta_nonce', 'nonce');
+
+    $hinta = floatval(str_replace(',', '.', sanitize_text_field($_POST['hinta'])));
+    update_option('kirppis_poyta_hinta', $hinta);
+
+    wp_send_json_success();
+}
+
+// AJAX: Kaikkien varausten poistaminen
+add_action('wp_ajax_poista_kaikki_varaukset', 'poista_kaikki_varaukset_ajax');
+
+function poista_kaikki_varaukset_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+
+    check_ajax_referer('poista_kaikki_varaukset_nonce', 'nonce');
+
+    global $wpdb;
+    $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}varaukset");
+
+    wp_send_json_success();
+}
+
+// AJAX: Laskutusasetuksen tallennus checkboxilta ilman nappia
+add_action('wp_ajax_tallenna_laskutusasetus', 'tallenna_laskutusasetus_ajax');
+
+function tallenna_laskutusasetus_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+
+    check_ajax_referer('tallenna_laskutusasetus_nonce', 'nonce');
+
+    $arvo = sanitize_text_field($_POST['arvo']) === '1' ? '1' : '0';
+    update_option('kirppis_laskutus_paalla', $arvo);
+
+    wp_send_json_success();
+}
+
+
+// Tuodaan tyylit ja javascript
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(
         'kirppis-styles',
@@ -322,5 +390,3 @@ add_shortcode('kirppis_varauslomake', function() {
     return ob_get_clean();
 
 });
-
-

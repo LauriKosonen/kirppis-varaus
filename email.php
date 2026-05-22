@@ -25,7 +25,7 @@ function generoi_laskunumero($varaus_id) {
 }
 
 function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero) {
-    $hinta = 20.00;
+    $hinta = (float) get_option('kirppis_poyta_hinta', 0);
     $erapaiva = date('d.m.Y', strtotime('+14 days'));
     $pvm = date('d.m.Y');
 
@@ -60,20 +60,25 @@ function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero
         <h3>Erittely</h3>
         <table class="erittely">
             <thead>
-                <tr><th>Kuvaus</th><th>Hinta (sis. ALV)</th></tr>
+                <tr><th>Paikka numero</th><th>Hinta</th></tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>Pöytäpaikka – ' . htmlspecialchars($paikka_id) . '</td>
+                    <td>' . htmlspecialchars($paikka_id) . '</td>
                     <td>' . number_format($hinta, 2, ',', '') . ' €</td>
                 </tr>
             </tbody>
         </table>
 
+
         <h3>Maksutiedot</h3>
         <table class="tiedot">
             <tr><td><b>Saaja:</b></td><td>Torppis-kirppis</td></tr>
+
+
             <tr><td><b>IBAN:</b></td><td>FI00 0000 0000 0000 00</td></tr>
+            
+
             <tr><td><b>Summa:</b></td><td>' . number_format($hinta, 2, ',', '') . ' €</td></tr>
             <tr><td><b>Viitenumero:</b></td><td>' . $viitenumero . '</td></tr>
             <tr><td><b>Eräpäivä:</b></td><td>' . $erapaiva . '</td></tr>
