@@ -7,7 +7,7 @@ require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 use Dompdf\Dompdf;
 
 function laske_viitenumero($pohja) {
-    $numerosarja = (string)$pohja; // ei etunollia
+    $numerosarja = (string)$pohja;
     $kertoimet = [7, 3, 1];
     $summa = 0;
     $digits = array_reverse(str_split($numerosarja));
@@ -17,7 +17,7 @@ function laske_viitenumero($pohja) {
     }
 
     $tarkiste = (10 - ($summa % 10)) % 10;
-    return $numerosarja . $tarkiste;
+    return $numerosarja . "00" . $tarkiste;
 }
 
 function generoi_laskunumero($varaus_id) {
@@ -73,7 +73,7 @@ function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero
 
         <h3>Maksutiedot</h3>
         <table class="tiedot">
-            <tr><td><b>Saaja:</b></td><td>Torppis-kirppis</td></tr>
+            <tr><td><b>Saaja:</b></td><td>Torppis ry</td></tr>
 
 
             <tr><td><b>IBAN:</b></td><td>FI00 0000 0000 0000 00</td></tr>

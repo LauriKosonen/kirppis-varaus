@@ -39,6 +39,8 @@ function kirppis_varaukset_sivu() {
     ';
 
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
+    $navi_paalla     = get_option('kirppis_navi_paalla', '0');
+    $tapahtuma_pvm   = get_option('kirppis_tapahtuma_pvm', '');
 
     global $wpdb;
     $taulu = $wpdb->prefix . 'varaukset';
@@ -103,6 +105,105 @@ function kirppis_varaukset_sivu() {
     echo '<div class="wrap">';
     echo '<h1 style="margin-bottom: 1em;">Paikkavaraukset</h1>';
 
+    // ── NAVIGAATIO-KYTKIN ──────────────────────────────────────────────────────
+    $navi_nonce = wp_create_nonce('tallenna_navi_asetus_nonce');
+    $varaus_page_id = get_option('kirppis_varaus_page_id', 0);
+    echo '<div style="margin-bottom: 20px;" class="no-print">';
+    echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
+    echo '<input type="checkbox" id="kirppis_navi_checkbox" value="1" '
+        . checked('1', $navi_paalla, false) . ' style="margin-right: 8px;">';
+    echo 'Varaussivu näkyvissä navigaatiopalkissa';
+    echo '</label>';
+    echo ' <span id="navi-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    // Varaussivun ID -kenttä
+    $page_id_nonce = wp_create_nonce('tallenna_page_id_nonce');
+    echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
+    echo '<label for="varaus_page_id" style="font-weight:600;">Varaussivun ID (WordPress-sivu):</label>';
+
+    // Näytetään dropdown WordPress-sivuista
+    $sivut = get_pages(['post_status' => ['publish', 'private']]);
+    echo '<select id="varaus_page_id" style="padding: 3px 6px;">';
+    echo '<option value="0">– Valitse sivu –</option>';
+    foreach ($sivut as $sivu) {
+        $selected = selected($varaus_page_id, $sivu->ID, false);
+        echo '<option value="' . esc_attr($sivu->ID) . '" ' . $selected . '>'
+            . esc_html($sivu->post_title) . ' (ID: ' . $sivu->ID . ')</option>';
+    }
+    echo '</select>';
+    echo '<button id="tallenna_page_id_btn" class="button button-secondary">Tallenna</button>';
+    echo '<span id="page-id-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("kirppis_navi_checkbox").addEventListener("change", function() {
+        var arvo = this.checked ? "1" : "0";
+        var tila = document.getElementById("navi-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_navi_asetus",
+            arvo: arvo,
+            nonce: "' . $navi_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+
+    document.getElementById("tallenna_page_id_btn").addEventListener("click", function() {
+        var arvo = document.getElementById("varaus_page_id").value;
+        var tila = document.getElementById("page-id-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_page_id",
+            page_id: arvo,
+            nonce: "' . $page_id_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
+
+    // ── PÄIVÄMÄÄRÄKENTTÄ ───────────────────────────────────────────────────────
+    $pvm_nonce = wp_create_nonce('tallenna_tapahtuma_pvm_nonce');
+    echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
+    echo '<label for="tapahtuma_pvm" style="font-weight:600;">Tapahtumapäivä (lomakkeeseen + sulkeutuminen):</label>';
+    echo '<input type="date" id="tapahtuma_pvm" value="' . esc_attr($tapahtuma_pvm) . '" style="padding: 3px 6px;">';
+    echo '<button id="tallenna_pvm_btn" class="button button-secondary">Tallenna päivämäärä</button>';
+    echo '<span id="pvm-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("tallenna_pvm_btn").addEventListener("click", function() {
+        var arvo = document.getElementById("tapahtuma_pvm").value;
+        var tila = document.getElementById("pvm-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_tapahtuma_pvm",
+            pvm: arvo,
+            nonce: "' . $pvm_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
+
+    // ── LASKUTUSASETUKSET ──────────────────────────────────────────────────────
     // Laskutusasetukset – tallennetaan AJAX:lla ilman nappia
     $laskutus_nonce = wp_create_nonce('tallenna_laskutusasetus_nonce');
     echo '<div style="margin-bottom: 20px;" class="no-print">';

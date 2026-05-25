@@ -10,6 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+// Siivotaan cron pluginin deaktivoinnissa
+register_deactivation_hook(__FILE__, function() {
+    wp_clear_scheduled_hook('kirppis_tarkista_pvm_cron');
+});
+
 require_once plugin_dir_path(__FILE__) . '/email.php';
 require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 
@@ -130,6 +135,108 @@ function luo_varaus_ajax() {
     } else {
         wp_send_json_error($result['message']);
     }
+}
+
+// AJAX: Varaussivun ID:n tallennus
+add_action('wp_ajax_tallenna_page_id', 'tallenna_page_id_ajax');
+
+function tallenna_page_id_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+    check_ajax_referer('tallenna_page_id_nonce', 'nonce');
+
+    $page_id = intval($_POST['page_id']);
+    update_option('kirppis_varaus_page_id', $page_id);
+    kirppis_paivita_sivun_nakyvyys();
+    wp_send_json_success();
+}
+
+// AJAX: Navigaatiokytkimen tallennus
+add_action('wp_ajax_tallenna_navi_asetus', 'tallenna_navi_asetus_ajax');
+
+function tallenna_navi_asetus_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+    check_ajax_referer('tallenna_navi_asetus_nonce', 'nonce');
+
+    $arvo = sanitize_text_field($_POST['arvo']) === '1' ? '1' : '0';
+    update_option('kirppis_navi_paalla', $arvo);
+    kirppis_paivita_sivun_nakyvyys();
+    wp_send_json_success();
+}
+
+// AJAX: Tapahtumapäivämäärän tallennus
+add_action('wp_ajax_tallenna_tapahtuma_pvm', 'tallenna_tapahtuma_pvm_ajax');
+
+function tallenna_tapahtuma_pvm_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+    check_ajax_referer('tallenna_tapahtuma_pvm_nonce', 'nonce');
+
+    $pvm = sanitize_text_field($_POST['pvm']);
+    // Validoidaan päivämäärä (muoto YYYY-MM-DD)
+    if ($pvm && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $pvm)) {
+        wp_send_json_error('Virheellinen päivämäärä');
+    }
+    update_option('kirppis_tapahtuma_pvm', $pvm);
+    // Tarkistetaan tuleeko sivu piilottaa heti
+    kirppis_paivita_sivun_nakyvyys();
+    wp_send_json_success();
+}
+
+/**
+ * Päivittää varaussivun näkyvyyden navigaatiossa.
+ * Sivu piilotetaan jos:
+ *   – navigaatiokytkin on pois päältä, TAI
+ *   – tapahtumapäivä on mennyt (tai tänään eli alkaa keskiyöllä)
+ */
+function kirppis_paivita_sivun_nakyvyys() {
+    $navi_paalla   = get_option('kirppis_navi_paalla', '0');
+    $tapahtuma_pvm = get_option('kirppis_tapahtuma_pvm', '');
+
+    // Tarkistetaan onko tapahtumapäivä jo mennyt
+    $pvm_mennyt = false;
+    if ($tapahtuma_pvm) {
+        // Käytetään WordPress-aikavyöhykettä
+        $nyt = current_time('timestamp');
+        $tapahtuma_ts = strtotime($tapahtuma_pvm . ' 00:00:00');
+        if ($nyt >= $tapahtuma_ts) {
+            $pvm_mennyt = true;
+        }
+    }
+
+    $nayta = ($navi_paalla === '1') && !$pvm_mennyt;
+
+    // Haetaan varaussivun slug tai ID option-taulukkosta
+    $varaus_page_id = get_option('kirppis_varaus_page_id', 0);
+    if (!$varaus_page_id) {
+        return;
+    }
+
+    // Päivitetään sivun tila: publish = näkyvissä, private = piilotettu
+    $tila = $nayta ? 'publish' : 'private';
+    $sivu = get_post($varaus_page_id);
+    if ($sivu && $sivu->post_status !== $tila) {
+        wp_update_post([
+            'ID'          => $varaus_page_id,
+            'post_status' => $tila,
+        ]);
+    }
+}
+
+// WP Cron: tarkistetaan päivittäin puoliyöllä suljetaanko sivu
+add_action('kirppis_tarkista_pvm_cron', 'kirppis_paivita_sivun_nakyvyys');
+
+if (!wp_next_scheduled('kirppis_tarkista_pvm_cron')) {
+    // Ajoitetaan seuraavaan puoliyöhön (UTC, WP hoitaa timezone-offsetin sisäisesti)
+    $seuraava_puoliyo = strtotime('tomorrow midnight', current_time('timestamp'));
+    // Muunnetaan UTC:ksi (wp_schedule_event käyttää UTC:tä)
+    $wp_offset   = get_option('gmt_offset') * HOUR_IN_SECONDS;
+    $seuraava_utc = $seuraava_puoliyo - $wp_offset;
+    wp_schedule_event($seuraava_utc, 'daily', 'kirppis_tarkista_pvm_cron');
 }
 
 // Merkitään varaus maksetuksi admin-puolelta
@@ -326,7 +433,13 @@ add_shortcode('kirppis_varauslomake', function() {
     ?>
 
     <div class="lomake-pohja">
-        <h3 class="keskitetty-teksti">PAIKAN VARAUSLOMAKE<br> 11.11.1111</h3>
+        <?php
+        $tapahtuma_pvm_raw = get_option('kirppis_tapahtuma_pvm', '');
+        $tapahtuma_pvm_naytto = $tapahtuma_pvm_raw
+            ? date_i18n('j.n.Y', strtotime($tapahtuma_pvm_raw))
+            : '';
+        ?>
+        <h3 class="keskitetty-teksti">PAIKAN VARAUSLOMAKE<?php if ($tapahtuma_pvm_naytto) echo '<br>' . esc_html($tapahtuma_pvm_naytto); ?></h3>
         <p class="keskitetty-teksti">Täytä yhteystietosi ja valitse haluamasi paikkanumero alasvetolaatikosta. Vapaat ja varatut paikat näkyvät pöytäkartassa. Alasvetolaatikko näyttää vain vapaat paikat. Voit maksaa pöytävarauksen joko Mobilepay:lla tai korttimaksulla</p>
 
         <form id="varaus-form">
