@@ -103,16 +103,16 @@ function kirppis_varaukset_sivu() {
     ");
 
     echo '<div class="wrap">';
-    echo '<h1 style="margin-bottom: 1em;">Paikkavaraukset</h1>';
+    echo '<h1 style="margin-bottom: 1em;">Paikanvarausjärjestelmä</h1>';
 
-    // ── NAVIGAATIO-KYTKIN ──────────────────────────────────────────────────────
+    // NAVIGAATIO KYTKIN
     $navi_nonce = wp_create_nonce('tallenna_navi_asetus_nonce');
     $varaus_page_id = get_option('kirppis_varaus_page_id', 0);
     echo '<div style="margin-bottom: 20px;" class="no-print">';
     echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
     echo '<input type="checkbox" id="kirppis_navi_checkbox" value="1" '
         . checked('1', $navi_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Varaussivu näkyvissä navigaatiopalkissa';
+    echo 'Varaussivu päälle tai pois';
     echo '</label>';
     echo ' <span id="navi-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
@@ -174,7 +174,7 @@ function kirppis_varaukset_sivu() {
     });
     </script>';
 
-    // ── PÄIVÄMÄÄRÄKENTTÄ ───────────────────────────────────────────────────────
+    //PÄIVÄMÄÄRÄKENTTÄ
     $pvm_nonce = wp_create_nonce('tallenna_tapahtuma_pvm_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
     echo '<label for="tapahtuma_pvm" style="font-weight:600;">Tapahtumapäivä (lomakkeeseen + sulkeutuminen):</label>';
@@ -203,14 +203,14 @@ function kirppis_varaukset_sivu() {
     });
     </script>';
 
-    // ── LASKUTUSASETUKSET ──────────────────────────────────────────────────────
+    // LASKUTUSASETUKSET
     // Laskutusasetukset – tallennetaan AJAX:lla ilman nappia
     $laskutus_nonce = wp_create_nonce('tallenna_laskutusasetus_nonce');
     echo '<div style="margin-bottom: 20px;" class="no-print">';
     echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
     echo '<input type="checkbox" id="kirppis_laskutus_checkbox" value="1" '
         . checked('1', $laskutus_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Laskutus päällä – lasku lähetetään sähköpostin liitteenä';
+    echo 'Laskutus päällä - lasku lähetetään sähköpostin liitteenä';
     echo '</label>';
     echo ' <span id="laskutus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
@@ -232,10 +232,10 @@ function kirppis_varaukset_sivu() {
                 var banneri = document.getElementById("laskutus-banneri");
                 if (arvo === "1") {
                     banneri.className = "notice notice-warning is-dismissible";
-                    banneri.innerHTML = "<p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p>";
+                    banneri.innerHTML = "<p>⚠️ Laskutus on päällä - varausvahvistuksiin liitetään PDF-lasku.</p>";
                 } else {
                     banneri.className = "notice notice-info is-dismissible";
-                    banneri.innerHTML = "<p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p>";
+                    banneri.innerHTML = "<p>Laskutus ei ole päällä - sähköpostit lähetetään ilman laskua.</p>";
                 }
             } else {
                 tila.textContent = "Virhe tallennuksessa.";
@@ -246,9 +246,41 @@ function kirppis_varaukset_sivu() {
 
     $banneri_class = $laskutus_paalla === '1' ? 'notice notice-warning is-dismissible' : 'notice notice-info is-dismissible';
     $banneri_teksti = $laskutus_paalla === '1'
-        ? '<p>⚠️ Laskutus on päällä – varausvahvistuksiin liitetään PDF-lasku.</p>'
-        : '<p>Laskutus ei ole päällä – sähköpostit lähetetään ilman laskua.</p>';
+        ? '<p>⚠️ Laskutus on päällä - varausvahvistuksiin liitetään PDF-lasku.</p>'
+        : '<p>Laskutus ei ole päällä - sähköpostit lähetetään ilman laskua.</p>';
     echo '<div id="laskutus-banneri" class="' . $banneri_class . '">' . $banneri_teksti . '</div>';
+
+    // HENKILÖRAJOITUS
+    $henkilorajoitus_paalla  = get_option('kirppis_henkilorajoitus_paalla', '0');
+    $henkilorajoitus_nonce   = wp_create_nonce('tallenna_henkilorajoitus_nonce');
+    echo '<div style="margin-bottom: 20px;" class="no-print">';
+    echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
+    echo '<input type="checkbox" id="kirppis_henkilorajoitus_checkbox" value="1" '
+        . checked('1', $henkilorajoitus_paalla, false) . ' style="margin-right: 8px;">';
+    echo 'Henkilörajoitus päällä - yksi varaus per henkilö (tarkistus etu- ja sukunimellä)';
+    echo '</label>';
+    echo ' <span id="henkilorajoitus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("kirppis_henkilorajoitus_checkbox").addEventListener("change", function() {
+        var arvo = this.checked ? "1" : "0";
+        var tila = document.getElementById("henkilorajoitus-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_henkilorajoitus",
+            arvo: arvo,
+            nonce: "' . $henkilorajoitus_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
 
     $hinta_nonce = wp_create_nonce('tallenna_hinta_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';

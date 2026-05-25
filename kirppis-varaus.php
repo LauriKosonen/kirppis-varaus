@@ -64,6 +64,19 @@ function luo_varaus($paikka_id, $etunimi, $sukunimi, $email) {
         return ['success' => false, 'message' => 'Paikka on jo varattu'];
     }
 
+    // Tarkistetaan henkilörajoitus (yksi varaus per henkilö)
+    $rajoitus_paalla = get_option('kirppis_henkilorajoitus_paalla', '0');
+    if ($rajoitus_paalla === '1') {
+        $nimi_varaus = $wpdb->get_var($wpdb->prepare("
+            SELECT COUNT(*) FROM $table
+            WHERE etunimi = %s AND sukunimi = %s
+        ", $etunimi, $sukunimi));
+
+        if ($nimi_varaus > 0) {
+            return ['success' => false, 'message' => 'Olet jo tehnyt varauksen. Kukin henkilö voi tehdä vain yhden varauksen.'];
+        }
+    }
+
     // Aikaleimat
     $now = current_time('mysql');
 
@@ -309,6 +322,22 @@ function tallenna_laskutusasetus_ajax() {
     wp_send_json_success();
 }
 
+// AJAX: Henkilörajoituskytkimen tallennus
+add_action('wp_ajax_tallenna_henkilorajoitus', 'tallenna_henkilorajoitus_ajax');
+
+function tallenna_henkilorajoitus_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Ei oikeuksia');
+    }
+
+    check_ajax_referer('tallenna_henkilorajoitus_nonce', 'nonce');
+
+    $arvo = sanitize_text_field($_POST['arvo']) === '1' ? '1' : '0';
+    update_option('kirppis_henkilorajoitus_paalla', $arvo);
+
+    wp_send_json_success();
+}
+
 
 // Tuodaan tyylit ja javascript
 add_action('wp_enqueue_scripts', function() {
@@ -332,8 +361,8 @@ add_action('wp_enqueue_scripts', function() {
 
 add_action('admin_menu', function() {
     add_menu_page(
-        'Varausjärjestelmä',        // sivun otsikko
-        'Varausjärjestelmä',        // valikon nimi
+        'Paikanvarausjärjestelmä',  // sivun otsikko
+        'Paikanvarausjärjestelmä',  // valikon nimi
         'manage_options',           // oikeudet
         'kirppis-varaukset',        // slug
         'kirppis_varaukset_sivu',   // funktio joka renderöi sivun
