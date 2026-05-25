@@ -112,7 +112,7 @@ function kirppis_varaukset_sivu() {
     echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
     echo '<input type="checkbox" id="kirppis_navi_checkbox" value="1" '
         . checked('1', $navi_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Varaussivu päälle tai pois';
+    echo 'Varaussivun näkyvyys navigaatiopalkissa';
     echo '</label>';
     echo ' <span id="navi-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
@@ -177,7 +177,7 @@ function kirppis_varaukset_sivu() {
     //PÄIVÄMÄÄRÄKENTTÄ
     $pvm_nonce = wp_create_nonce('tallenna_tapahtuma_pvm_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
-    echo '<label for="tapahtuma_pvm" style="font-weight:600;">Tapahtumapäivä (lomakkeeseen + sulkeutuminen):</label>';
+    echo '<label for="tapahtuma_pvm" style="font-weight:600;">Tapahtumapäivä (lomakkeeseen + varauksien automaattinen sulkeutuminen):</label>';
     echo '<input type="date" id="tapahtuma_pvm" value="' . esc_attr($tapahtuma_pvm) . '" style="padding: 3px 6px;">';
     echo '<button id="tallenna_pvm_btn" class="button button-secondary">Tallenna päivämäärä</button>';
     echo '<span id="pvm-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';

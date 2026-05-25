@@ -469,7 +469,7 @@ add_shortcode('kirppis_varauslomake', function() {
             : '';
         ?>
         <h3 class="keskitetty-teksti">PAIKAN VARAUSLOMAKE<?php if ($tapahtuma_pvm_naytto) echo '<br>' . esc_html($tapahtuma_pvm_naytto); ?></h3>
-        <p class="keskitetty-teksti">Täytä yhteystietosi ja valitse haluamasi paikkanumero alasvetolaatikosta. Vapaat ja varatut paikat näkyvät pöytäkartassa. Alasvetolaatikko näyttää vain vapaat paikat. Voit maksaa pöytävarauksen joko Mobilepay:lla tai korttimaksulla</p>
+        <p class="keskitetty-teksti">Täytä yhteystietosi ja valitse haluamasi paikkanumero alasvetolaatikosta. Vapaat ja varatut paikat näkyvät pöytäkartassa. Alasvetolaatikko näyttää vain vapaat paikat.</p>
 
         <form id="varaus-form">
 
@@ -510,7 +510,7 @@ add_shortcode('kirppis_varauslomake', function() {
 
                 <div class="maksu-kentta">
                     <label>näkymätön css</label>
-                    <button type="submit">Siirry maksamaan</button>
+                    <button type="submit">Varaa paikka</button>
                 </div>
             </div>
 
