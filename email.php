@@ -17,7 +17,7 @@ function laske_viitenumero($pohja) {
     }
 
     $tarkiste = (10 - ($summa % 10)) % 10;
-    return $numerosarja . "00" . $tarkiste;
+    return $numerosarja . $tarkiste;
 }
 
 function generoi_laskunumero($varaus_id) {
@@ -73,7 +73,7 @@ function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero
 
         <h3>Maksutiedot</h3>
         <table class="tiedot">
-            <tr><td><b>Saaja:</b></td><td>Torppis ry</td></tr>
+            <tr><td><b>Saaja:</b></td><td>Torppis-kirppis</td></tr>
 
 
             <tr><td><b>IBAN:</b></td><td>FI00 0000 0000 0000 00</td></tr>
