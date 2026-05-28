@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Sähköpostilaskujen generointi dompdf-kirjastolla
 require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 use Dompdf\Dompdf;
 
@@ -95,14 +96,14 @@ function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero
 }
 
 function vahvistus_email($email, $etunimi, $sukunimi, $paikka_id, $varaus_id) {
-    $email     = sanitize_email($email);
-    $etunimi   = sanitize_text_field($etunimi);
-    $sukunimi  = sanitize_text_field($sukunimi);
+    $email = sanitize_email($email);
+    $etunimi = sanitize_text_field($etunimi);
+    $sukunimi = sanitize_text_field($sukunimi);
     $paikka_id = sanitize_text_field($paikka_id);
 
     $paikka_numero = preg_replace('/[^0-9]/', '', $paikka_id);
-    $viitenumero   = laske_viitenumero($paikka_numero);
-    $laskunumero   = generoi_laskunumero($varaus_id);
+    $viitenumero = laske_viitenumero($paikka_numero);
+    $laskunumero = generoi_laskunumero($varaus_id);
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
 
     //lisää tämä väliaikaisesti
@@ -138,8 +139,8 @@ Torppis-kirppis
     }
 
     // Lähetetään PDF-liitteen kanssa
-    $pdf_data  = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
-    $boundary  = md5(uniqid(time()));
+    $pdf_data = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
+    $boundary = md5(uniqid(time()));
 
     $headers = implode("\r\n", [
         'MIME-Version: 1.0',

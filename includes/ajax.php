@@ -3,18 +3,17 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// ---------------------------------------------------------------------------
-// Varauksen luonti (julkinen)
-// ---------------------------------------------------------------------------
 
-add_action( 'wp_ajax_luo_varaus',        'luo_varaus_ajax' );
+// Varauksen luonti AJAX:lla
+
+add_action( 'wp_ajax_luo_varaus', 'luo_varaus_ajax' );
 add_action( 'wp_ajax_nopriv_luo_varaus', 'luo_varaus_ajax' );
 
 function luo_varaus_ajax() {
     $paikka_id = sanitize_text_field( $_POST['paikka_id'] );
-    $etunimi   = sanitize_text_field( $_POST['etunimi'] );
-    $sukunimi  = sanitize_text_field( $_POST['sukunimi'] );
-    $email     = sanitize_email( $_POST['email'] );
+    $etunimi = sanitize_text_field( $_POST['etunimi'] );
+    $sukunimi = sanitize_text_field( $_POST['sukunimi'] );
+    $email = sanitize_email( $_POST['email'] );
 
     $result = luo_varaus( $paikka_id, $etunimi, $sukunimi, $email );
 
@@ -25,9 +24,8 @@ function luo_varaus_ajax() {
     }
 }
 
-// ---------------------------------------------------------------------------
+
 // Admin-AJAX: asetukset
-// ---------------------------------------------------------------------------
 
 add_action( 'wp_ajax_tallenna_page_id', 'tallenna_page_id_ajax' );
 
@@ -52,6 +50,8 @@ function tallenna_navi_asetus_ajax() {
     wp_send_json_success();
 }
 
+
+//päivämäärän tallennus
 add_action( 'wp_ajax_tallenna_tapahtuma_pvm', 'tallenna_tapahtuma_pvm_ajax' );
 
 function tallenna_tapahtuma_pvm_ajax() {
@@ -67,6 +67,7 @@ function tallenna_tapahtuma_pvm_ajax() {
     wp_send_json_success();
 }
 
+//  laskutusasetukset
 add_action( 'wp_ajax_tallenna_laskutusasetus', 'tallenna_laskutusasetus_ajax' );
 
 function tallenna_laskutusasetus_ajax() {
@@ -78,6 +79,7 @@ function tallenna_laskutusasetus_ajax() {
     wp_send_json_success();
 }
 
+//varausten määrän rajoitus per henkilö
 add_action( 'wp_ajax_tallenna_henkilorajoitus', 'tallenna_henkilorajoitus_ajax' );
 
 function tallenna_henkilorajoitus_ajax() {
@@ -89,6 +91,7 @@ function tallenna_henkilorajoitus_ajax() {
     wp_send_json_success();
 }
 
+//hinnan päivitys
 add_action( 'wp_ajax_tallenna_hinta', 'tallenna_hinta_ajax' );
 
 function tallenna_hinta_ajax() {
@@ -100,6 +103,7 @@ function tallenna_hinta_ajax() {
     wp_send_json_success();
 }
 
+//maksetuksi merkintä
 add_action( 'wp_ajax_merkitse_maksetuksi', 'merkitse_maksetuksi_ajax' );
 
 function merkitse_maksetuksi_ajax() {
@@ -115,6 +119,7 @@ function merkitse_maksetuksi_ajax() {
     wp_send_json_success();
 }
 
+// Kaikkien varausten poisto
 add_action( 'wp_ajax_poista_kaikki_varaukset', 'poista_kaikki_varaukset_ajax' );
 
 function poista_kaikki_varaukset_ajax() {
@@ -126,30 +131,24 @@ function poista_kaikki_varaukset_ajax() {
     wp_send_json_success();
 }
 
-// ---------------------------------------------------------------------------
-// Sivun näkyvyys navigaatiossa + WP Cron
-// ---------------------------------------------------------------------------
 
-/**
- * Päivittää varaussivun näkyvyyden navigaatiossa.
- * Sivu piilotetaan jos:
- *   – navigaatiokytkin on pois päältä, TAI
- *   – tapahtumapäivä on mennyt (tai tänään eli alkaa keskiyöllä)
- */
+// Sivun näkyvyys navigaatiossa. Sivu piilotetaan kun se on kytketty pois päätä hallintapaneelissa
+// Tai tapahtumapäivä on mennyt.
+
 function kirppis_paivita_sivun_nakyvyys() {
-    $navi_paalla   = get_option( 'kirppis_navi_paalla', '0' );
+    $navi_paalla = get_option( 'kirppis_navi_paalla', '0' );
     $tapahtuma_pvm = get_option( 'kirppis_tapahtuma_pvm', '' );
 
     $pvm_mennyt = false;
     if ( $tapahtuma_pvm ) {
-        $nyt          = current_time( 'timestamp' );
+        $nyt = current_time( 'timestamp' );
         $tapahtuma_ts = strtotime( $tapahtuma_pvm . ' 00:00:00' );
         if ( $nyt >= $tapahtuma_ts ) {
             $pvm_mennyt = true;
         }
     }
 
-    $nayta          = ( $navi_paalla === '1' ) && ! $pvm_mennyt;
+    $nayta = ( $navi_paalla === '1' ) && ! $pvm_mennyt;
     $varaus_page_id = get_option( 'kirppis_varaus_page_id', 0 );
 
     if ( ! $varaus_page_id ) {
@@ -168,6 +167,6 @@ add_action( 'kirppis_tarkista_pvm_cron', 'kirppis_paivita_sivun_nakyvyys' );
 
 if ( ! wp_next_scheduled( 'kirppis_tarkista_pvm_cron' ) ) {
     $seuraava_puoliyo = strtotime( 'tomorrow midnight', current_time( 'timestamp' ) );
-    $wp_offset        = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+    $wp_offset = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
     wp_schedule_event( $seuraava_puoliyo - $wp_offset, 'daily', 'kirppis_tarkista_pvm_cron' );
 }

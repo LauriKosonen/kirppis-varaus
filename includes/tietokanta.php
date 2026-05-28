@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Tietokanta taulun luonti pluginin aktivoinnissa
 function varaus_plugin_create_table() {
     global $wpdb;
-    $table_name      = $wpdb->prefix . 'varaukset';
+    $table_name = $wpdb->prefix . 'varaukset';
     $charset_collate = $wpdb->get_charset_collate();
     require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
@@ -59,10 +59,10 @@ function luo_varaus( $paikka_id, $etunimi, $sukunimi, $email ) {
     // Tallennetaan tietokantaan
     $inserted = $wpdb->insert( $table, [
         'paikka_id' => $paikka_id,
-        'etunimi'   => $etunimi,
-        'sukunimi'  => $sukunimi,
-        'email'     => $email,
-        'luotu'     => current_time( 'mysql' ),
+        'etunimi' => $etunimi,
+        'sukunimi' => $sukunimi,
+        'email' => $email,
+        'luotu' => current_time( 'mysql' ),
     ] );
     $varaus_id = $wpdb->insert_id;
 
@@ -78,10 +78,10 @@ function luo_varaus( $paikka_id, $etunimi, $sukunimi, $email ) {
 // Haetaan varattujen paikkojen ID:t karttaa varten
 function hae_varatut_poydat() {
     global $wpdb;
-    $taulu    = $wpdb->prefix . 'varaukset';
+    $taulu = $wpdb->prefix . 'varaukset';
     $varaukset = $wpdb->get_col( "SELECT paikka_id FROM $taulu" );
     wp_send_json_success( $varaukset );
 }
 
-add_action( 'wp_ajax_hae_varatut_poydat',        'hae_varatut_poydat' );
+add_action( 'wp_ajax_hae_varatut_poydat', 'hae_varatut_poydat' );
 add_action( 'wp_ajax_nopriv_hae_varatut_poydat', 'hae_varatut_poydat' );

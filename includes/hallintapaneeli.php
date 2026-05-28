@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function kirppis_varaukset_sivu() {
-
+    // Tyylitetään tulostetta varten, piilotetaan sivupalkki ja nappulat
     echo '
         <style>
         @media print {
@@ -39,8 +39,8 @@ function kirppis_varaukset_sivu() {
     ';
 
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
-    $navi_paalla     = get_option('kirppis_navi_paalla', '0');
-    $tapahtuma_pvm   = get_option('kirppis_tapahtuma_pvm', '');
+    $navi_paalla = get_option('kirppis_navi_paalla', '0');
+    $tapahtuma_pvm = get_option('kirppis_tapahtuma_pvm', '');
 
     global $wpdb;
     $taulu = $wpdb->prefix . 'varaukset';
@@ -56,10 +56,10 @@ function kirppis_varaukset_sivu() {
         } else {
             $wpdb->insert($taulu, [
                 'paikka_id' => $paikka,
-                'etunimi'   => sanitize_text_field($_POST['etunimi']),
-                'sukunimi'  => sanitize_text_field($_POST['sukunimi']),
-                'email'     => sanitize_email($_POST['email']),
-                'luotu'     => current_time('mysql')
+                'etunimi' => sanitize_text_field($_POST['etunimi']),
+                'sukunimi' => sanitize_text_field($_POST['sukunimi']),
+                'email' => sanitize_email($_POST['email']),
+                'luotu' => current_time('mysql')
             ]);
             echo '<div class="notice notice-success is-dismissible"><p>Varaus lisätty.</p></div>';
         }
@@ -79,9 +79,9 @@ function kirppis_varaukset_sivu() {
             $taulu,
             [
                 'paikka_id' => sanitize_text_field($_POST['paikka_id']),
-                'etunimi'   => sanitize_text_field($_POST['etunimi']),
-                'sukunimi'  => sanitize_text_field($_POST['sukunimi']),
-                'email'     => sanitize_email($_POST['email']),
+                'etunimi' => sanitize_text_field($_POST['etunimi']),
+                'sukunimi' => sanitize_text_field($_POST['sukunimi']),
+                'email' => sanitize_email($_POST['email']),
             ],
             ['id' => $id]
         );
@@ -105,7 +105,7 @@ function kirppis_varaukset_sivu() {
     echo '<div class="wrap">';
     echo '<h1 style="margin-bottom: 1em;">Paikanvarausjärjestelmä</h1>';
 
-    // NAVIGAATIO KYTKIN
+    // varussivun näkyvyysnavigaatiossa
     $navi_nonce = wp_create_nonce('tallenna_navi_asetus_nonce');
     $varaus_page_id = get_option('kirppis_varaus_page_id', 0);
     echo '<div style="margin-bottom: 20px;" class="no-print">';
@@ -117,7 +117,7 @@ function kirppis_varaukset_sivu() {
     echo ' <span id="navi-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
 
-    // Varaussivun ID -kenttä
+    // Varaussivun ID kenttä valinta
     $page_id_nonce = wp_create_nonce('tallenna_page_id_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
     echo '<label for="varaus_page_id" style="font-weight:600;">Varaussivun ID (WordPress-sivu):</label>';
@@ -125,7 +125,7 @@ function kirppis_varaukset_sivu() {
     // Näytetään dropdown WordPress-sivuista
     $sivut = get_pages(['post_status' => ['publish', 'private']]);
     echo '<select id="varaus_page_id" style="padding: 3px 6px;">';
-    echo '<option value="0">– Valitse sivu –</option>';
+    echo '<option value="0">- Valitse sivu -</option>';
     foreach ($sivut as $sivu) {
         $selected = selected($varaus_page_id, $sivu->ID, false);
         echo '<option value="' . esc_attr($sivu->ID) . '" ' . $selected . '>'
@@ -174,7 +174,7 @@ function kirppis_varaukset_sivu() {
     });
     </script>';
 
-    //PÄIVÄMÄÄRÄKENTTÄ
+    //Päivämääräkenttä
     $pvm_nonce = wp_create_nonce('tallenna_tapahtuma_pvm_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
     echo '<label for="tapahtuma_pvm" style="font-weight:600;">Tapahtumapäivä (lomakkeeseen + varauksien automaattinen sulkeutuminen):</label>';
@@ -203,7 +203,38 @@ function kirppis_varaukset_sivu() {
     });
     </script>';
 
-    // LASKUTUSASETUKSET
+    //Henkilörajoitus
+    $henkilorajoitus_paalla  = get_option('kirppis_henkilorajoitus_paalla', '0');
+    $henkilorajoitus_nonce   = wp_create_nonce('tallenna_henkilorajoitus_nonce');
+    echo '<div style="margin-bottom: 20px;" class="no-print">';
+    echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
+    echo '<input type="checkbox" id="kirppis_henkilorajoitus_checkbox" value="1" '
+        . checked('1', $henkilorajoitus_paalla, false) . ' style="margin-right: 8px;">';
+    echo 'Henkilörajoitus päällä - yksi varaus per henkilö (tarkistus etu- ja sukunimellä)';
+    echo '</label>';
+    echo ' <span id="henkilorajoitus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("kirppis_henkilorajoitus_checkbox").addEventListener("change", function() {
+        var arvo = this.checked ? "1" : "0";
+        var tila = document.getElementById("henkilorajoitus-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_henkilorajoitus",
+            arvo: arvo,
+            nonce: "' . $henkilorajoitus_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
+
     // Laskutusasetukset – tallennetaan AJAX:lla ilman nappia
     $laskutus_nonce = wp_create_nonce('tallenna_laskutusasetus_nonce');
     echo '<div style="margin-bottom: 20px;" class="no-print">';
@@ -250,38 +281,7 @@ function kirppis_varaukset_sivu() {
         : '<p>Laskutus ei ole päällä - sähköpostit lähetetään ilman laskua.</p>';
     echo '<div id="laskutus-banneri" class="' . $banneri_class . '">' . $banneri_teksti . '</div>';
 
-    // HENKILÖRAJOITUS
-    $henkilorajoitus_paalla  = get_option('kirppis_henkilorajoitus_paalla', '0');
-    $henkilorajoitus_nonce   = wp_create_nonce('tallenna_henkilorajoitus_nonce');
-    echo '<div style="margin-bottom: 20px;" class="no-print">';
-    echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
-    echo '<input type="checkbox" id="kirppis_henkilorajoitus_checkbox" value="1" '
-        . checked('1', $henkilorajoitus_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Henkilörajoitus päällä - yksi varaus per henkilö (tarkistus etu- ja sukunimellä)';
-    echo '</label>';
-    echo ' <span id="henkilorajoitus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
-    echo '</div>';
-
-    echo '<script>
-    document.getElementById("kirppis_henkilorajoitus_checkbox").addEventListener("change", function() {
-        var arvo = this.checked ? "1" : "0";
-        var tila = document.getElementById("henkilorajoitus-tila");
-        tila.textContent = "Tallennetaan...";
-        jQuery.post(ajaxurl, {
-            action: "tallenna_henkilorajoitus",
-            arvo: arvo,
-            nonce: "' . $henkilorajoitus_nonce . '"
-        }, function(response) {
-            if (response.success) {
-                tila.textContent = "\u2713 Tallennettu";
-                setTimeout(function(){ tila.textContent = ""; }, 2000);
-            } else {
-                tila.textContent = "Virhe tallennuksessa.";
-            }
-        });
-    });
-    </script>';
-
+    //hinnan tallennus
     $hinta_nonce = wp_create_nonce('tallenna_hinta_nonce');
     echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
     echo '<label for="poyta_hinta" style="font-weight:600;">Varauksen hinta (€):</label>';
@@ -436,9 +436,9 @@ function kirppis_varaukset_sivu() {
             echo '<form method="post" style="margin-top:20px;" class="no-print">';
             echo '<input type="hidden" name="varaus_id" value="' . esc_attr($muokattava->id) . '">';
             echo '<input type="text"  name="paikka_id" value="' . esc_attr($muokattava->paikka_id) . '" required> ';
-            echo '<input type="text"  name="etunimi"   value="' . esc_attr($muokattava->etunimi) . '" required> ';
-            echo '<input type="text"  name="sukunimi"  value="' . esc_attr($muokattava->sukunimi) . '" required> ';
-            echo '<input type="email" name="email"     value="' . esc_attr($muokattava->email) . '" required> ';
+            echo '<input type="text"  name="etunimi" value="' . esc_attr($muokattava->etunimi) . '" required> ';
+            echo '<input type="text"  name="sukunimi" value="' . esc_attr($muokattava->sukunimi) . '" required> ';
+            echo '<input type="email" name="email" value="' . esc_attr($muokattava->email) . '" required> ';
             echo '<input type="submit" name="save_varaus" class="button button-primary" value="Tallenna muutokset">';
             echo '</form>';
         }

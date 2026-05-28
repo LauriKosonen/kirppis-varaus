@@ -10,44 +10,33 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// ---------------------------------------------------------------------------
-// Vendor ja sähköposti
-// ---------------------------------------------------------------------------
 
+// Vendor ja sähköposti
 require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 require_once plugin_dir_path( __FILE__ ) . 'email.php';
 
-// ---------------------------------------------------------------------------
-// Moduulit
-// ---------------------------------------------------------------------------
 
+// Moduulit
 require_once plugin_dir_path( __FILE__ ) . 'includes/tietokanta.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/ajax.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/shortcodes.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/hallintapaneeli.php';
 
-// ---------------------------------------------------------------------------
-// Aktivointi- ja deaktivointikoukut
-// ---------------------------------------------------------------------------
 
+// Aktivointi- ja deaktivointikoukut
 register_activation_hook( __FILE__, 'varaus_plugin_create_table' );
 
 register_deactivation_hook( __FILE__, function() {
     wp_clear_scheduled_hook( 'kirppis_tarkista_pvm_cron' );
 } );
 
-// ---------------------------------------------------------------------------
-// Asetukset
-// ---------------------------------------------------------------------------
 
+// Asetukset
 add_action( 'admin_init', function() {
     register_setting( 'kirppis_asetukset', 'kirppis_laskutus_paalla' );
 } );
 
-// ---------------------------------------------------------------------------
 // Admin-valikko
-// ---------------------------------------------------------------------------
-
 add_action( 'admin_menu', function() {
     add_menu_page(
         'Paikanvarausjärjestelmä',
@@ -60,10 +49,8 @@ add_action( 'admin_menu', function() {
     );
 } );
 
-// ---------------------------------------------------------------------------
-// Skriptit ja tyylit
-// ---------------------------------------------------------------------------
 
+// Skriptit ja tyylit
 add_action( 'wp_enqueue_scripts', function() {
     wp_enqueue_style(
         'kirppis-styles',

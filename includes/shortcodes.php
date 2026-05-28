@@ -63,17 +63,15 @@ add_shortcode( 'kartta_kortetalo', function() {
 
 
 // Varauslomake
-
 add_shortcode( 'kirppis_varauslomake', function() {
 
     $laskutus_paalla = get_option( 'kirppis_laskutus_paalla', '0' );
-    $hinta           = (float) get_option( 'kirppis_poyta_hinta', 0 );
-    $hinta_teksti    = $hinta > 0 ? number_format( $hinta, 2, ',', '' ) . ' €' : '';
+    $hinta = (float) get_option( 'kirppis_poyta_hinta', 0 );
+    $hinta_teksti = $hinta > 0 ? number_format( $hinta, 2, ',', '' ) . ' €' : '';
 
-    $tapahtuma_pvm_raw    = get_option( 'kirppis_tapahtuma_pvm', '' );
+    $tapahtuma_pvm_raw = get_option( 'kirppis_tapahtuma_pvm', '' );
     $tapahtuma_pvm_naytto = $tapahtuma_pvm_raw
-        ? date_i18n( 'j.n.Y', strtotime( $tapahtuma_pvm_raw ) )
-        : '';
+        ? date_i18n( 'j.n.Y', strtotime( $tapahtuma_pvm_raw ) ) : '';
 
     ob_start();
     ?>
@@ -145,7 +143,7 @@ add_shortcode( 'kirppis_varauslomake', function() {
             <h3>Varaus onnistui!</h3>
             <p>
                 Sähköpostiisi on lähetetty vahvistusviesti varauksen tiedoilla.
-                <?php if ( $laskutus_paalla === '1' ) echo ' Varauksen maksu tapahtuu sähköpostin mukana toimitetulla laskulla.'; ?>Tarkista myös roskaposti kansio, jos et näe viestiä saapuneissa.
+                <?php if ( $laskutus_paalla === '1' ) echo ' Varauksen maksu tapahtuu sähköpostin mukana toimitetulla laskulla.'; ?> Tarkista myös roskaposti kansio, jos et näe viestiä saapuneissa.
             </p>
             <button id="close-ilmoitus-modal">Sulje</button>
         </div>
