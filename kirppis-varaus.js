@@ -103,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Formin kenttien tallennus tietokantaan
+    jQuery.ajaxSetup({ timeout: 30000 });
+
     jQuery('#varaus-form').on('submit', function(e) {
         e.preventDefault();
 
@@ -113,6 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Näytetään latausviesti napissa
+        const nappi = jQuery('#varaus-form .maksu-kentta button');
+        const alkuperainenTeksti = nappi.text();
+        nappi.prop('disabled', true).text('Odota...');
+
         const data = {
             action: 'luo_varaus',
             paikka_id: jQuery('#paikka').val(),
@@ -121,19 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
             email: jQuery('#email').val()
         };
 
-        // Lähetetään varaus ja päivitetään kartta
         jQuery.post(ajax_object.ajax_url, data, function(response) {
+            nappi.prop('disabled', false).text(alkuperainenTeksti);
             if (response.success) {
-                // Avataan vahvistusmodaali
                 document.getElementById('ilmoitus-modal').classList.remove('hidden');
                 document.body.classList.add('modal-open');
             } else {
                 alert(response.data);
             }
-            // Päivitetään kartta ja dropdown aina riippumatta tuloksesta
             paivitaKarttaJaDropdown();
+        }).fail(function() {
+            // Jos AJAX aikakatkaistaan, odotetaan ja yritetään tarkistaa tulos
+            setTimeout(function() {
+                nappi.prop('disabled', false).text(alkuperainenTeksti);
+                paivitaKarttaJaDropdown();
+            }, 3000);
         });
-
     });
 
 });
