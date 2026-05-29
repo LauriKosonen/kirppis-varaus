@@ -70,7 +70,10 @@ function luo_varaus( $paikka_id, $etunimi, $sukunimi, $email ) {
         return [ 'success' => false, 'message' => 'DB error: ' . $wpdb->last_error ];
     }
 
-    vahvistus_email( $email, $etunimi, $sukunimi, $paikka_id, $varaus_id );
+    // Lähetetään sähköposti WP Cronin kautta taustalla
+    wp_schedule_single_event( time(), 'kirppis_laheta_vahvistus', [
+        $email, $etunimi, $sukunimi, $paikka_id, $varaus_id
+    ]);
 
     return [ 'success' => true, 'message' => 'Varaus luotu' ];
 }

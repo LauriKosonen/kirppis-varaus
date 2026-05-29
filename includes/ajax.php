@@ -170,3 +170,6 @@ if ( ! wp_next_scheduled( 'kirppis_tarkista_pvm_cron' ) ) {
     $wp_offset = get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
     wp_schedule_event( $seuraava_puoliyo - $wp_offset, 'daily', 'kirppis_tarkista_pvm_cron' );
 }
+
+// Sähköpostin lähetys WP Cronin kautta
+add_action('kirppis_laheta_vahvistus', 'vahvistus_email', 10, 5);
