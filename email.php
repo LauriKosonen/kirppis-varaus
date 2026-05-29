@@ -18,7 +18,7 @@ function laske_viitenumero($pohja) {
     }
 
     $tarkiste = (10 - ($summa % 10)) % 10;
-    return $numerosarja . $tarkiste;
+    return $numerosarja ."00". $tarkiste;
 }
 
 function generoi_laskunumero($varaus_id) {
@@ -107,8 +107,8 @@ function vahvistus_email($email, $etunimi, $sukunimi, $paikka_id, $varaus_id) {
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
 
     //lisää tämä väliaikaisesti generoidaksesi laskun PDF-tiedoston debuggausta varten
-    // $pdf_debug = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
-    // file_put_contents(plugin_dir_path(__FILE__) . 'debug-lasku-' . $varaus_id . '.pdf', $pdf_debug);
+    $pdf_debug = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
+    file_put_contents(plugin_dir_path(__FILE__) . 'debug-lasku-' . $varaus_id . '.pdf', $pdf_debug);
 
     $subject = 'Pöytävaraus vahvistettu';
 
