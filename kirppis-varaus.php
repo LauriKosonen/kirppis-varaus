@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Kirppis varausjärjestelmä
- * Description: Pöydänvarausjärjestelmä kirpputoreille
+ * Description: Paikanvarausjärjestelmä kirpputoreille
  * Version: 1.2
  * Author: Lauri Kosonen
  */
