@@ -9,6 +9,12 @@ use Dompdf\Dompdf;
 
 function laske_viitenumero($pohja) {
     $numerosarja = (string)$pohja;
+    
+    // Lisätään 00 jos numerosarja on liian lyhyt
+    while (strlen($numerosarja) < 3) {
+        $numerosarja = $numerosarja . '0';
+    }
+    
     $kertoimet = [7, 3, 1];
     $summa = 0;
     $digits = array_reverse(str_split($numerosarja));
@@ -18,7 +24,7 @@ function laske_viitenumero($pohja) {
     }
 
     $tarkiste = (10 - ($summa % 10)) % 10;
-    return $numerosarja ."00". $tarkiste;
+    return $numerosarja . $tarkiste;
 }
 
 function generoi_laskunumero($varaus_id) {
@@ -110,18 +116,17 @@ function vahvistus_email($email, $etunimi, $sukunimi, $paikka_id, $varaus_id) {
     // $pdf_debug = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
     // file_put_contents(plugin_dir_path(__FILE__) . 'debug-lasku-' . $varaus_id . '.pdf', $pdf_debug);
 
-    $subject = 'Pöytävaraus vahvistettu';
+    $subject = '=?UTF-8?B?' . base64_encode('Paikkavaraus vahvistettu') . '?=';
 
     $message = "
 Hei $etunimi $sukunimi,
 
-Pöytävarauksesi on vastaanotettu onnistuneesti.
+Paikkavarauksesi on vastaanotettu onnistuneesti.
 
-Varattu pöytä: $paikka_id
+Varattu paikka: $paikka_id
 ";
 
     if ($laskutus_paalla === '1') {
-        $message .= "Viitenumero:   $viitenumero\n";
         $message .= "Lasku on liitetty tähän sähköpostiin PDF-muodossa.\n";
     }
 
