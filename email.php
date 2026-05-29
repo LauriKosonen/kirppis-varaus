@@ -106,9 +106,9 @@ function vahvistus_email($email, $etunimi, $sukunimi, $paikka_id, $varaus_id) {
     $laskunumero = generoi_laskunumero($varaus_id);
     $laskutus_paalla = get_option('kirppis_laskutus_paalla', '0');
 
-    //lisää tämä väliaikaisesti generoidaksesi laskun PDF-tiedoston debuggausta varten
-    $pdf_debug = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
-    file_put_contents(plugin_dir_path(__FILE__) . 'debug-lasku-' . $varaus_id . '.pdf', $pdf_debug);
+    //lisää seuraavat 2 riviä laskun debuggausta varten. Luo laskut pdf tiedostoina pluginin kansioon.
+    // $pdf_debug = generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero, $laskunumero);
+    // file_put_contents(plugin_dir_path(__FILE__) . 'debug-lasku-' . $varaus_id . '.pdf', $pdf_debug);
 
     $subject = 'Pöytävaraus vahvistettu';
 
