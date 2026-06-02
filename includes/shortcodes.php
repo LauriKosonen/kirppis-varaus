@@ -87,7 +87,7 @@ add_shortcode( 'kirppis_varauslomake', function() {
             Vapaat ja varatut paikat näkyvät pöytäkartassa.
             <?php if ( $laskutus_paalla === '1' && $hinta_teksti ) : ?>
                 Paikanvaraus maksaa <strong><?php echo esc_html( $hinta_teksti ); ?></strong>
-                ja maksu tapahtuu sähköpostin mukana toimitetulla laskulla.
+                ja maksu tapahtuu sähköpostiin toimitettavalla laskulla.
             <?php endif; ?>
         </p>
 
