@@ -83,7 +83,7 @@ add_shortcode( 'kirppis_varauslomake', function() {
         </h3>
 
         <p class="keskitetty-teksti">
-            Täytä yhteystietosi ja valitse haluamasi paikkanumero alasvetolaatikosta.
+            Täytä yhteystietosi ja valitse haluamasi paikkanumero pudotusvalikosta.
             Vapaat ja varatut paikat näkyvät pöytäkartassa.
             <?php if ( $laskutus_paalla === '1' && $hinta_teksti ) : ?>
                 Paikanvaraus maksaa <strong><?php echo esc_html( $hinta_teksti ); ?></strong>
