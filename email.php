@@ -83,7 +83,7 @@ function generoi_lasku_pdf($etunimi, $sukunimi, $email, $paikka_id, $viitenumero
             <tr><td><b>Saaja:</b></td><td>Torppis-kirppis</td></tr>
 
 
-            <tr><td><b>IBAN:</b></td><td>FI14 5290 1640 0346 05</td></tr>
+            <tr><td><b>IBAN:</b></td><td>' . esc_html(get_option('kirppis_iban', '')) . '</td></tr>
             
 
             <tr><td><b>Summa:</b></td><td>' . number_format($hinta, 2, ',', '') . ' €</td></tr>

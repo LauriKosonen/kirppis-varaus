@@ -35,6 +35,51 @@ function kirppis_varaukset_sivu() {
                 display: none !important;
             }
         }
+
+        @media screen and (max-width: 782px) {
+            .wrap h1 { font-size: 1.4em; }
+
+            /* Piilotetaan taulukko, näytetään kortteina */
+            .widefat thead { display: none; }
+
+            .widefat tr {
+                display: block;
+                margin-bottom: 1em;
+                border: 1px solid #ccd0d4;
+                border-radius: 4px;
+                background: white;
+            }
+
+            .widefat td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 12px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+            }
+
+            .widefat td:last-child { border-bottom: none; }
+
+            .widefat td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                margin-right: 1em;
+                color: #555;
+                flex-shrink: 0;
+            }
+
+            /* Asetuskentät pinoon mobiilissa */
+            .no-print[style*="display: flex"] {
+                flex-wrap: wrap !important;
+            }
+
+            /* Toiminnot-solun nappulat */
+            .widefat td.no-print {
+                justify-content: flex-end;
+                gap: 6px;
+            }
+        }
         </style>
     ';
 
@@ -210,7 +255,7 @@ function kirppis_varaukset_sivu() {
     echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
     echo '<input type="checkbox" id="kirppis_henkilorajoitus_checkbox" value="1" '
         . checked('1', $henkilorajoitus_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Henkilörajoitus päällä - yksi varaus per henkilö (tarkistus etu- ja sukunimellä)';
+    echo 'Henkilörajoitus - yksi varaus per henkilö (tarkistus etu- ja sukunimellä)';
     echo '</label>';
     echo ' <span id="henkilorajoitus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
@@ -241,7 +286,7 @@ function kirppis_varaukset_sivu() {
     echo '<label style="font-size: 1.1em; font-weight: bold; cursor: pointer;">';
     echo '<input type="checkbox" id="kirppis_laskutus_checkbox" value="1" '
         . checked('1', $laskutus_paalla, false) . ' style="margin-right: 8px;">';
-    echo 'Laskutus päällä - lasku lähetetään sähköpostin liitteenä';
+    echo 'Laskutus - lasku lähetetään sähköpostin liitteenä';
     echo '</label>';
     echo ' <span id="laskutus-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
     echo '</div>';
@@ -299,6 +344,36 @@ function kirppis_varaukset_sivu() {
             action: "tallenna_hinta",
             hinta: arvo,
             nonce: "' . $hinta_nonce . '"
+        }, function(response) {
+            if (response.success) {
+                tila.textContent = "\u2713 Tallennettu";
+                setTimeout(function(){ tila.textContent = ""; }, 2000);
+            } else {
+                tila.textContent = "Virhe tallennuksessa.";
+            }
+        });
+    });
+    </script>';
+
+    //Iban numeron tallennus
+    $iban_nonce = wp_create_nonce('tallenna_iban_nonce');
+    $tallennettu_iban = get_option('kirppis_iban', '');
+    echo '<div class="no-print" style="margin-bottom: 1.5em; display: flex; align-items: center; gap: 0.5em;">';
+    echo '<label for="kirppis_iban" style="font-weight:600;">Tilinumero (IBAN):</label>';
+    echo '<input type="text" id="kirppis_iban" value="' . esc_attr($tallennettu_iban) . '" placeholder="FI00 0000 0000 0000 00" style="width:220px;">';
+    echo '<button id="tallenna_iban_btn" class="button button-secondary">Tallenna tilinumero</button>';
+    echo '<span id="iban-tila" style="color: #666; font-style: italic; margin-left: 8px;"></span>';
+    echo '</div>';
+
+    echo '<script>
+    document.getElementById("tallenna_iban_btn").addEventListener("click", function() {
+        var arvo = document.getElementById("kirppis_iban").value;
+        var tila = document.getElementById("iban-tila");
+        tila.textContent = "Tallennetaan...";
+        jQuery.post(ajaxurl, {
+            action: "tallenna_iban",
+            iban: arvo,
+            nonce: "' . $iban_nonce . '"
         }, function(response) {
             if (response.success) {
                 tila.textContent = "\u2713 Tallennettu";
@@ -389,11 +464,11 @@ function kirppis_varaukset_sivu() {
 
     foreach ($varaukset as $varaus) {
         echo '<tr>';
-        echo '<td>' . esc_html($varaus->paikka_id) . '</td>';
-        echo '<td>' . esc_html($varaus->etunimi) . '</td>';
-        echo '<td>' . esc_html($varaus->sukunimi) . '</td>';
-        echo '<td>' . esc_html($varaus->email) . '</td>';
-        echo '<td>' . esc_html($varaus->luotu) . '</td>';
+        echo '<td data-label="Paikka">' . esc_html($varaus->paikka_id) . '</td>';
+        echo '<td data-label="Etunimi">' . esc_html($varaus->etunimi) . '</td>';
+        echo '<td data-label="Sukunimi">' . esc_html($varaus->sukunimi) . '</td>';
+        echo '<td data-label="Sähköposti">' . esc_html($varaus->email) . '</td>';
+        echo '<td data-label="Luotu">' . esc_html($varaus->luotu) . '</td>';
 
         $lasku_status = $varaus->lasku_lahetetty
             ? '<span style="color: green;">✓ Lähetetty (' . esc_html($varaus->laskunumero) . ')</span>'
@@ -403,20 +478,35 @@ function kirppis_varaukset_sivu() {
             $lasku_status = '<span style="color: green; font-weight:bold;">✓ Maksettu</span>';
         }
 
-        echo '<td>' . $lasku_status . '</td>';
+        echo '<td data-label="Lasku">' . $lasku_status . '</td>';
 
-        echo '<td class="no-print">';
+        echo '<td class="no-print" data-label="Toiminnot">';
         echo '<a href="' . admin_url('admin.php?page=kirppis-varaukset&edit=' . $varaus->id) . '"
-            class="button button-secondary">Muokkaa</a> ';
+            class="button button-primary"
+            title="Muokkaa varausta"
+            style="padding:2px 8px;display:inline-flex;align-items:center;justify-content:center;">
+            <span class="dashicons dashicons-edit" style="font-size:16px;width:16px;height:16px;margin-top:-13px;"></span>
+        </a> ';
+
         echo '<a href="' . wp_nonce_url(
             admin_url('admin.php?page=kirppis-varaukset&delete=' . $varaus->id),
             'delete_varaus_' . $varaus->id
         ) . '"
-            class="button button-secondary"
-            onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">Poista</a>';
+            class="button"
+            title="Poista varaus"
+            style="padding:2px 8px;display:inline-flex;align-items:center;justify-content:center;background:#d63638;border-color:#d63638;color:white;"
+            onclick="return confirm(\'Haluatko varmasti poistaa varauksen?\')">
+            <span class="dashicons dashicons-trash" style="font-size:16px;width:16px;height:16px;margin-top:-13px;"></span>
+        </a>';
 
         if (empty($varaus->maksettu) && !empty($varaus->lasku_lahetetty)) {
-            echo ' <button class="button button-secondary" onclick="merkitseMaksetuksi(' . $varaus->id . ', this)">Merkitse maksetuksi</button>';
+            echo ' <button
+                class="button"
+                title="Merkitse maksetuksi"
+                style="padding:2px 8px;display:inline-flex;align-items:center;justify-content:center;background:#00a32a;border-color:#00a32a;color:white;"
+                onclick="merkitseMaksetuksi(' . $varaus->id . ', this)">
+                <span class="dashicons dashicons-yes-alt" style="font-size:16px;width:16px;height:16px;margin-top:-13px;"></span>
+            </button>';
         }
 
         echo '</td>';

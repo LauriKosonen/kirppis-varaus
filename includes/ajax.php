@@ -171,5 +171,17 @@ if ( ! wp_next_scheduled( 'kirppis_tarkista_pvm_cron' ) ) {
     wp_schedule_event( $seuraava_puoliyo - $wp_offset, 'daily', 'kirppis_tarkista_pvm_cron' );
 }
 
+//iban numeron tallennus
+add_action( 'wp_ajax_tallenna_iban', 'tallenna_iban_ajax' );
+
+function tallenna_iban_ajax() {
+    if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Ei oikeuksia' );
+    check_ajax_referer( 'tallenna_iban_nonce', 'nonce' );
+
+    $iban = sanitize_text_field( $_POST['iban'] );
+    update_option( 'kirppis_iban', $iban );
+    wp_send_json_success();
+}
+
 // Sähköpostin lähetys WP Cronin kautta
 add_action('kirppis_laheta_vahvistus', 'vahvistus_email', 10, 5);
