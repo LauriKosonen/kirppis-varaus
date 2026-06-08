@@ -3,63 +3,53 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Pääpohja: yhdistää lomakkeen ja kartan
-
+// Shortcode varauslomakkeelle ja karttapohjalle
 add_shortcode( 'varaus_pohja', function( $atts ) {
     $atts = shortcode_atts( [ 'kartta' => '' ], $atts );
+
+    $kartta_html = '';
+
+    if ( ! empty( $atts['kartta'] ) ) {
+        // Sanitoidaan tiedostonimi ja sallitaan vain kirjaimet, numerot, väliviivat ja alaviivat
+        $tiedostonimi = sanitize_file_name( $atts['kartta'] );
+        // Varmistetaan että on .svg päätteinen
+        if ( substr( $tiedostonimi, -4 ) !== '.svg' ) {
+            $tiedostonimi .= '.svg';
+        }
+        $svg_path = plugin_dir_path( dirname( __FILE__ ) ) . 'kartat/' . $tiedostonimi;
+
+        if ( file_exists( $svg_path ) ) {
+            $svg = file_get_contents( $svg_path );
+            $kartta_html = '
+                <div class="kartta-pohja">
+                    <h3 class="kartta-otsikko">PAIKKAKARTTA</h3>
+                    <div class="svg-wrapper">' . $svg . '</div>
+                    <div class="kartta-legend">
+                        <div class="legend-item">
+                            <span class="color-box green"></span>
+                            Vapaa
+                        </div>
+                        <div class="legend-item">
+                            <span class="color-box orange"></span>
+                            Varattu
+                        </div>
+                    </div>
+                </div>
+            ';
+        } else {
+            $kartta_html = '<p>Karttaa ei löytynyt: ' . esc_html( $tiedostonimi ) . '</p>';
+        }
+    }
 
     ob_start();
     ?>
     <div class="varaus-pohja">
         <?php echo do_shortcode( '[kirppis_varauslomake]' ); ?>
-        <?php
-        if ( $atts['kartta'] === 'kortetalo' ) {
-            echo do_shortcode( '[kartta_kortetalo]' );
-        }
-        // Lisää tähän uusia karttoja tarvittaessa:
-        // if ( $atts['kartta'] === 'xxxx' ) { echo do_shortcode( '[kartta_xxxx]' ); }
-        ?>
+        <?php echo $kartta_html; ?>
     </div>
     <?php
     return ob_get_clean();
 } );
-
-
-// Kartat
-add_shortcode( 'kartta_kortetalo', function() {
-    $svg_path = plugin_dir_path( dirname( __FILE__ ) ) . 'assets/poytakartta_kortetalo.svg';
-
-    if ( ! file_exists( $svg_path ) ) {
-        return '<p>Karttaa ei löytynyt.</p>';
-    }
-
-    $svg = file_get_contents( $svg_path );
-
-    return '
-        <div class="kartta-pohja">
-            <h3 class="kartta-otsikko">PAIKKAKARTTA</h3>
-            <div class="svg-wrapper">' . $svg . '</div>
-            <div class="kartta-legend">
-                <div class="legend-item">
-                    <span class="color-box green"></span>
-                    Vapaa
-                </div>
-                <div class="legend-item">
-                    <span class="color-box orange"></span>
-                    Varattu
-                </div>
-            </div>
-        </div>
-    ';
-} );
-
-// Pohja uudelle kartalle:
-// add_shortcode( 'kartta_xxxx', function() {
-//     $svg_path = plugin_dir_path( dirname( __FILE__ ) ) . 'assets/poytakartta_xxxx.svg';
-//     if ( ! file_exists( $svg_path ) ) return '<p>Karttaa ei löytynyt.</p>';
-//     $svg = file_get_contents( $svg_path );
-//     return '<div class="kartta-pohja">...</div>';
-// } );
 
 
 // Varauslomake
@@ -78,7 +68,7 @@ add_shortcode( 'kirppis_varauslomake', function() {
     <div class="lomake-pohja">
 
         <h3 class="keskitetty-teksti">
-            PAIKAN VARAUSLOMAKE
+            PAIKANVARAUSLOMAKE
             <?php if ( $tapahtuma_pvm_naytto ) echo '<br>' . esc_html( $tapahtuma_pvm_naytto ); ?>
         </h3>
 

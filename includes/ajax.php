@@ -3,6 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/** @var array $_POST */
+/** @var array $_GET */
+/** @var array $_SERVER */
 
 // Varauksen luonti AJAX:lla
 
