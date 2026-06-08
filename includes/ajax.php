@@ -130,7 +130,7 @@ function poista_kaikki_varaukset_ajax() {
     check_ajax_referer( 'poista_kaikki_varaukset_nonce', 'nonce' );
 
     global $wpdb;
-    $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}varaukset" );
+    $wpdb->query( "DELETE FROM {$wpdb->prefix}varaukset" );
     wp_send_json_success();
 }
 
