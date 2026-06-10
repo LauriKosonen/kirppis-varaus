@@ -14,4 +14,4 @@ Kirpputorin paikanvaraus-lisäosa
 Google Drive lataus linkki zip-pakettiin:
 [Valmis ZIP-paketti](https://drive.google.com/file/d/1IdYkda9Q3bLT64KTm4ybEa56bjJhgUfD/view?usp=drive_link)
 
-[Torppis-kirppis paikanvarausjärjestelmä – Käyttöönotto ja käyttöohje.pdf](https://github.com/user-attachments/files/28787466/Torppis-kirppis.paikanvarausjarjestelma.Kayttoonotto.ja.kayttoohje.pdf)
+[Torppis-kirppis paikanvarausjärjestelmä – Käyttöönotto ja käyttöohje.pdf](https://github.com/user-attachments/files/28787704/Torppis-kirppis.paikanvarausjarjestelma.Kayttoonotto.ja.kayttoohje.pdf)
