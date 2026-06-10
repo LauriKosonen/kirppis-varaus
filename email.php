@@ -135,6 +135,8 @@ Kiitos varauksestasi!
 
 Terveisin,
 Torppis-kirppis
+
+Tämä on automaattisesti lähetetty viesti, älä vastaa tähän sähköpostiin.
     ";
 
     // Lähetetään ilman liitettä
