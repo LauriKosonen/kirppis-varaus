@@ -199,6 +199,7 @@
     visibility: hidden;
 }
 
+/* maksu nappi */
 #varaus-form .maksu-kentta button {
     height: 3.2em !important;
     min-height: 3.2em !important;
@@ -212,7 +213,25 @@
     color: white;
     cursor: pointer;
     padding: 0;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* hover efekti */
+#varaus-form .maksu-kentta button:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* klikkaus efekti */
+#varaus-form .maksu-kentta button:active {
+    background-color: #555;
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
 
 .keskitetty-teksti {
     text-align: center;
@@ -323,10 +342,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
 .hidden {
-    display: none !important;
+    display: flex !important;
+    visibility: hidden;
+    opacity: 0 !important;
+    pointer-events: none;
 }
 
 #ilmoitus-modal .modal-content {
@@ -335,6 +360,19 @@
     padding: 3em 2em;
     max-width: 600px;
     border-radius: 1em;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+#ilmoitus-modal:not(.hidden) .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+#ilmoitus-modal:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .modal-ikoni {
@@ -368,6 +406,20 @@
     color: white;
     cursor: pointer;
     font-size: 1em;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#close-ilmoitus-modal:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#close-ilmoitus-modal:active {
+    background-color: #555;
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 
