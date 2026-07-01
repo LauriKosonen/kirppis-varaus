@@ -20,6 +20,7 @@ Google Drive lataus linkki zip-pakettiin:
 
 
 In English:
+
 Flea Market Reservation System is a WordPress plugin developed for Torppis Ry that enables flea market organizers to manage table reservations online. Customers can make reservations through a form on the website, after which the system automatically sends a confirmation email containing the reservation details. When needed, PDF invoices can also be attached to the confirmation email.
 
 Features:
