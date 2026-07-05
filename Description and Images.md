@@ -1,6 +1,7 @@
 (English description and images below)
 
 ### Kuvaus
+
 Kirppis-varausjärjestelmä on Torppis Ry:lle toteutettu WordPress-lisäosa, jolla kirpputorin järjestäjät voivat hallita paikanvarauksia verkossa. Asiakkaat tekevät varaukset itse verkkosivuston lomakkeen kautta, ja järjestelmä lähettää heille automaattisen vahvistussähköpostin varauksen tiedoilla. Tarvittaessa vahvistussähköpostin mukana voidaan myös lähettää PDF laskuja.
 
 Ominaisuudet:
