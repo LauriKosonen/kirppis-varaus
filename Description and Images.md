@@ -18,6 +18,12 @@ Google Drive lataus linkki zip-pakettiin:
 
 [Torppis-kirppis paikanvarausjärjestelmä – Käyttöönotto ja käyttöohje.pdf](https://github.com/user-attachments/files/28787704/Torppis-kirppis.paikanvarausjarjestelma.Kayttoonotto.ja.kayttoohje.pdf)
 
+![User interface](https://github.com/user-attachments/assets/dbe2085e-b0d8-4d7e-96c0-9bf6f7e92b8d)
+
+![Dashboard](https://github.com/user-attachments/assets/d3097f7d-a332-4180-8000-f75c26303996)
+
+![List](https://github.com/user-attachments/assets/df2ca991-88bf-4b2a-b33b-654280d7a2b1)
+
 
 In English:
 
